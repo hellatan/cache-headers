@@ -20,6 +20,10 @@ const dateFormats = Object.freeze({
     test: 'ddd, DD MMM YYYY HH:mm'
 });
 
+function getType(val) {
+    return typeof val;
+}
+
 function createUnixTime(time) {
     if (time === (void 0)) {
         time = new Date();
@@ -54,16 +58,6 @@ function format(time, formatType = 'normal') {
         time = time.toISOString();
     }
     return (moment.utc(time).format(dateFormats[formatType || 'normal'])).toString() + ' GMT';
-}
-
-
-function getType(val) {
-    return typeof val;
-}
-
-function convertFromString(time) {
-    const date = format(time);
-    return date.isValid() ? date : false;
 }
 
 function arrayOfTimestampsFiles(files) {
@@ -135,7 +129,7 @@ function checkTimestampFileType(filePath) {
  * @returns {*}
  * @return number - timestamp
  */
-function getTimestamp(time) { // ($var)
+function getTimestamp(time) {
     return new Promise((resolve, reject) => {
 
         if (getType(time) === 'number') {
