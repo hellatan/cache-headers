@@ -8,6 +8,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const moment = require('moment');
 
 // Mon, 21 Dec 2015 19:45:29 GMT
@@ -65,38 +66,67 @@ function convertFromString(time) {
     return date.isValid() ? date : false;
 }
 
-function createTimestampFromDirectory(dirPath, formatType) {
-    const files = fs.readdirSync(dirPath);
-    const timestamps = [];
+function arrayOfTimestampsFiles(files) {
+    const promises = [];
 
     files.forEach(file => {
-        const _file = fs.lstatSync(dirPath + '/' + file);
-        if (_file.isFile()) {
-            timestamps.push(_file.mtime);
-        }
+        promises.push(
+            function () {
+                return new Promise((resolve, reject) => {
+                    fs.lstat(file, (err, fileStats) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        if (fileStats.isFile()) {
+                            return resolve(getTimestamp(fileStats.mtime));
+                        }
+                        return resolve(0);
+                    })
+                });
+            }()
+        );
     });
-
-    const latestTimestamp = getLatestTimestamp(timestamps);
-
-    if (latestTimestamp) {
-        return createUnixTime(latestTimestamp, formatType);
-    }
-
-    // unix time
-    return createUnixTime(formatType);
+    return Promise.all(promises);
 }
 
-function checkTimestampFileType(filePath, formatType) {
-    const path = fs.realpathSync(filePath);
-    const fileStats = fs.lstatSync(path);
-    if (fileStats.isFile()) {
-        return format(fileStats.mtime, formatType);
-    }
-    if (fileStats.isDirectory()) {
-        return createTimestampFromDirectory(path, formatType);
-    }
-    return false;
+function getTimestampFromDirectory(dirPath) {
+    return new Promise((resolve, reject) => {
+        fs.readdir(dirPath, (err, files) => {
+            if (err) {
+                return reject(err);
+            }
 
+            files = files.map(file => {
+                // prepend the `dirPath` to each file
+                return path.resolve(dirPath, file);
+            });
+
+            return arrayOfTimestampsFiles(files)
+                .then(timestamps => {
+                    const latestTimestamp = getLatestTimestamp(timestamps);
+                    // Mon, 21 Dec 2015 19:45:29 GMT
+                    // ddd, DD MMM YYYY HH:mm:ss
+                    const time = createUnixTime(latestTimestamp ? latestTimestamp : null);
+                    return resolve(time);
+                })
+                .catch(err => reject(err));
+        });
+    });
+
+}
+
+function checkTimestampFileType(filePath) {
+    return new Promise((resolve, reject) => {
+        const path = fs.realpathSync(filePath);
+        const fileStats = fs.lstatSync(path);
+        if (fileStats.isFile()) {
+            return resolve(createUnixTime(fileStats.mtime));
+        }
+        if (fileStats.isDirectory()) {
+            return resolve(getTimestampFromDirectory(path));
+        }
+        return reject(false);
+    });
 }
 
 /**
@@ -105,25 +135,39 @@ function checkTimestampFileType(filePath, formatType) {
  * @returns {*}
  * @return number - timestamp
  */
-function getTimestamp(time, formatType) { // ($var)
-    if (getType(time) === 'number') {
-        return time;
-    }
-    if (getType(time) === 'string' && +time === +time) {
-        return +time;
-    }
+function getTimestamp(time) { // ($var)
+    return new Promise((resolve, reject) => {
 
-    const timestamp = moment.utc(new Date(time));
-    if (timestamp.isValid()) {
-        return timestamp;
-    }
+        if (getType(time) === 'number') {
+            return resolve(time);
+        }
+        if (getType(time) === 'string' && +time === +time) {
+            return resolve(+time);
+        }
 
-    const fileWithTimestamp = checkTimestampFileType(time, formatType);
-    if (fileWithTimestamp) {
-        return fileWithTimestamp;
-    }
+        const timestamp = moment.utc(new Date(time));
+        if (timestamp.isValid()) {
+            return resolve(timestamp);
+        }
 
-    return createUnixTime(formatType);
+        return checkTimestampFileType(time)
+            .then(time => {
+                resolve(time);
+            })
+            .catch(() => {
+                resolve(createUnixTime());
+            });
+    });
+}
+
+function arrayOfTimestamps(values) {
+    const promises = [];
+    values.forEach(value => {
+        promises.push(
+            getTimestamp(value)
+        );
+    });
+    return Promise.all(promises);
 }
 
 module.exports = {
@@ -146,24 +190,31 @@ module.exports = {
         }
         return false;
     },
+    /**
+     *
+     * @param {array|string|null|false} compare Array of timestamps or a single path to check the last modified time
+     * @param formatType
+     * @returns {Promise}
+     */
     getLastModified(compare = null, formatType = 'normal') {
-        const timestamps = [];
-
-        if (Array.isArray(compare) && compare.length > 0) {
-            // Compare
-            compare.forEach(value => {
-                timestamps.push(getTimestamp(value));
-            });
-
-            const latestTimestamp = getLatestTimestamp(timestamps);
-
-            // Mon, 21 Dec 2015 19:45:29 GMT
-            // ddd, DD MMM YYYY HH:mm:ss
-            return format(latestTimestamp, formatType);
-        } else if (getType(compare) === 'string' && compare !== '') {
-            // Nothing to compare
-            return format(getTimestamp(compare), formatType);
-        }
-        return format(createUnixTime(), formatType);
+        return new Promise((resolve, reject) => {
+            if (Array.isArray(compare) && compare.length > 0) {
+                return arrayOfTimestamps(compare)
+                    .then(timestamps => {
+                        const latestTimestamp = getLatestTimestamp(timestamps);
+                        // Mon, 21 Dec 2015 19:45:29 GMT
+                        // ddd, DD MMM YYYY HH:mm:ss
+                        return resolve(format(latestTimestamp, formatType));
+                    })
+                    .catch(err => reject(err));
+            } else if (getType(compare) === 'string' && compare !== '') {
+                return getTimestamp(compare)
+                    .then(timestamp => {
+                        resolve(format(timestamp, formatType));
+                    })
+                    .catch(err => reject(err));
+            }
+            return resolve(format(createUnixTime(), formatType));
+        });
     }
 };

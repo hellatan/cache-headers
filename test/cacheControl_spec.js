@@ -9,44 +9,63 @@
 
 const assert = require('assert');
 const cacheControl = require('../src/cacheControl');
+const { headerTypes } = cacheControl;
 
 const CACHE_CONTROL_STR = 'Cache-Control';
 
 describe('cache control', () => {
-   it('should set correct default cache control headers', () => {
+    it('should set correct default cache control headers', () => {
         const actual = cacheControl.generate();
         assert.deepEqual(actual, { headerName: CACHE_CONTROL_STR, headerValue: 'max-age=600' });
-   });
-   it('should set all headers passed in along with default max-age header not passed in', () => {
-       const sMaxAge = 100;
-       const staleRevalidate = 200;
-       const staleError = 300;
-       let actual = cacheControl.generate({
-           sMaxAge,
-           staleRevalidate,
-           staleError
-       });
-       let expect = {
-           headerName: CACHE_CONTROL_STR,
-           headerValue: 'max-age=600, s-maxage=100, stale-while-revalidate=200, stale-if-error=300'
-       };
-       assert.deepEqual(actual, expect);
-   });
+    });
+    it('should set all headers passed in along with default max-age header not passed in', () => {
+        const sMaxAge = 100;
+        const staleRevalidate = 200;
+        const staleError = 300;
+        let actual = cacheControl.generate({
+            sMaxAge,
+            staleRevalidate,
+            staleError
+        });
+        let expect = {
+            headerName: CACHE_CONTROL_STR,
+            headerValue: 'max-age=600, s-maxage=100, stale-while-revalidate=200, stale-if-error=300'
+        };
+        assert.deepEqual(actual, expect);
+    });
     it('should set all headers passed in defined with string keywords', () => {
-       const headerTypes = cacheControl.headerTypes;
-       const actual = cacheControl.generate({
-           [headerTypes.browser.varName]: 'ONE_HOUR',
-           [headerTypes.cdn.varName]: 'ONE_WEEK',
-           [headerTypes.staleRevalidate.varName]: 'ONE_MINUTE',
-           [headerTypes.staleError.varName]: 10
-       });
+        const actual = cacheControl.generate({
+            [headerTypes.browser.varName]: 'ONE_HOUR',
+            [headerTypes.cdn.varName]: 'ONE_WEEK',
+            [headerTypes.staleRevalidate.varName]: 'ONE_MINUTE',
+            [headerTypes.staleError.varName]: 10
+        });
+        const expect = {
+            headerName: CACHE_CONTROL_STR,
+            headerValue: 'max-age=3600, s-maxage=604800, stale-while-revalidate=60, stale-if-error=10'
+        };
+        assert.deepEqual(actual, expect);
+    });
+    it('should default to 10 when an invalid string value is passed in', () => {
+        const actual = cacheControl.generate({
+            [headerTypes.browser.varName]: 'INVALID_TIME'
+        });
+        const expect = {
+            headerName: CACHE_CONTROL_STR,
+            headerValue: 'max-age=10'
+        };
+        assert.deepEqual(actual, expect);
+    });
+    it('should properly case the string value and return the correct time', () => {
+        const actual = cacheControl.generate({
+            [headerTypes.browser.varName]: 'one_minute',
+            [headerTypes.cdn.varName]: 'one_week'
+        });
+        const expect = {
+            headerName: CACHE_CONTROL_STR,
+            headerValue: 'max-age=60, s-maxage=604800'
+        };
+        assert.deepEqual(actual, expect);
 
-       const expect = {
-           headerName: CACHE_CONTROL_STR,
-           headerValue: 'max-age=3600, s-maxage=604800, stale-while-revalidate=60, stale-if-error=10'
-       };
-
-       assert.deepEqual(actual, expect);
-
-   });
+    });
 });
