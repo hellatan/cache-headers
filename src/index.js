@@ -11,6 +11,8 @@ const onHeaders = require('on-headers');
 const url = require('fast-url-parser');
 const globject = require('globject');
 const slasher = require('glob-slasher');
+const regular = require('regular');
+const isNumber = require('lodash.isnumber');
 const isEmpty = require('lodash.isempty');
 const cacheControl = require('./cacheControl');
 const { generateExpiresHeader, generateLastModifiedHeader } = require('./additionalHeaders');
@@ -18,7 +20,11 @@ const utils = require('./utils');
 const timeValues = require('./timeValues');
 
 function isTrueObject(obj) {
-    return !Array.isArray(obj) && typeof obj === 'object';
+    return !Array.isArray(obj) && typeof obj === 'object' && !isEmpty(obj) ;
+}
+
+function isNumberLike(val) {
+    return isNumber(val) || regular.number.test(val);
 }
 
 function setHeader(res, headerData) {
