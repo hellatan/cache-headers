@@ -28,7 +28,7 @@ function isNumberLike(val) {
 }
 
 function setHeader(res, headerData) {
-    res.setHeader(headerData.headerName, headerData.headerValue);
+    res.setHeader(headerData.name, headerData.value);
 }
 
 function middleware(config) {
@@ -40,13 +40,23 @@ function middleware(config) {
         let cacheValue = cacheValues(slasher(pathname));
 
         onHeaders(res, () => {
-            if (!isEmpty(cacheSettings) && isTrueObject(cacheSettings)) {
+            console.log('cache: ', cacheValue, ' :: ', config);
+            if (isTrueObject(cacheSettings)) {
                 // override default cacheValue settings
-                cacheValue = cacheControl.generate(cacheSettings).headerValue;
-            } else if (!cacheValue) {
-                cacheValue = cacheControl.generate().headerValue;
+                cacheValue = cacheControl.generate(cacheSettings).value;
+            } else if (isTrueObject(cacheValue)) {
+                cacheValue = cacheControl.generate(cacheValue).value;
+            } else if (cacheValue === false) {
+                cacheValue = cacheControl.generate({ maxAge: 0, sMaxAge: 0, setNoCache: true }).value;
+            } else if (isNumberLike(cacheValue)) {
+                // catch `0` before !cacheValue check
+                // make sure to convert value to actual number
+                cacheValue = +cacheValue;
+                cacheValue = cacheControl.generate({ maxAge: cacheValue, sMaxAge: cacheValue }).value;
+            } else if (!cacheValue || isEmpty(cacheValue)) {
+                cacheValue = cacheControl.generate().value;
             }
-            res.setHeader('Cache-Control', cacheValue);
+            setHeader(res, { name: 'Cache-Control', value: cacheValue });
         });
         next();
     };

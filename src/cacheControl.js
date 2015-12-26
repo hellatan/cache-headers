@@ -70,7 +70,8 @@ function generateCacheControl(options) {
     const { maxAge = timeValues.TEN_MINUTES,
         sMaxAge = 0,
         staleRevalidate = 0,
-        staleError = 0 } = options || {};
+        staleError = 0,
+        setNoCache = false } = options || {};
     const cacheHeaders = [generateBrowserCacheHeader(maxAge)];
 
     if (sMaxAge) {
@@ -85,9 +86,13 @@ function generateCacheControl(options) {
         cacheHeaders.push(generateStaleError(staleError));
     }
 
+    if (setNoCache) {
+        cacheHeaders.push('no-cache');
+    }
+
     return {
-        headerName: 'Cache-Control',
-        headerValue: `${cacheHeaders.join(', ')}`
+        name: 'Cache-Control',
+        value: `${cacheHeaders.join(', ')}`
     };
 }
 

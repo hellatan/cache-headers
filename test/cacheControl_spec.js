@@ -16,7 +16,7 @@ const CACHE_CONTROL_STR = 'Cache-Control';
 describe('cache control', () => {
     it('should set correct default cache control headers', () => {
         const actual = cacheControl.generate();
-        assert.deepEqual(actual, { headerName: CACHE_CONTROL_STR, headerValue: 'max-age=600' });
+        assert.deepEqual(actual, { name: CACHE_CONTROL_STR, value: 'max-age=600' });
     });
     it('should set all headers passed in along with default max-age header not passed in', () => {
         const sMaxAge = 100;
@@ -28,8 +28,8 @@ describe('cache control', () => {
             staleError
         });
         let expect = {
-            headerName: CACHE_CONTROL_STR,
-            headerValue: 'max-age=600, s-maxage=100, stale-while-revalidate=200, stale-if-error=300'
+            name: CACHE_CONTROL_STR,
+            value: 'max-age=600, s-maxage=100, stale-while-revalidate=200, stale-if-error=300'
         };
         assert.deepEqual(actual, expect);
     });
@@ -41,8 +41,8 @@ describe('cache control', () => {
             [headerTypes.staleError.varName]: 10
         });
         const expect = {
-            headerName: CACHE_CONTROL_STR,
-            headerValue: 'max-age=3600, s-maxage=604800, stale-while-revalidate=60, stale-if-error=10'
+            name: CACHE_CONTROL_STR,
+            value: 'max-age=3600, s-maxage=604800, stale-while-revalidate=60, stale-if-error=10'
         };
         assert.deepEqual(actual, expect);
     });
@@ -51,8 +51,8 @@ describe('cache control', () => {
             [headerTypes.browser.varName]: 'INVALID_TIME'
         });
         const expect = {
-            headerName: CACHE_CONTROL_STR,
-            headerValue: 'max-age=10'
+            name: CACHE_CONTROL_STR,
+            value: 'max-age=10'
         };
         assert.deepEqual(actual, expect);
     });
@@ -62,8 +62,8 @@ describe('cache control', () => {
             [headerTypes.cdn.varName]: 'one_week'
         });
         const expect = {
-            headerName: CACHE_CONTROL_STR,
-            headerValue: 'max-age=60, s-maxage=604800'
+            name: CACHE_CONTROL_STR,
+            value: 'max-age=60, s-maxage=604800'
         };
         assert.deepEqual(actual, expect);
 

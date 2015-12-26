@@ -24,8 +24,8 @@ function generateExpiresHeader(options = {}) {
     const value = utils.format(newTime.toISOString(), formatType);
 
     return {
-        headerName: 'Expires',
-        headerValue: value
+        name: 'Expires',
+        value: value
     };
 }
 
@@ -38,8 +38,8 @@ function generateLastModifiedHeader(options = {}) {
     const value = utils.format(date, formatType);
 
     return {
-        headerName: 'Last-Modified',
-        headerValue: value
+        name: 'Last-Modified',
+        value: value
     };
 }
 
