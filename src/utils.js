@@ -20,12 +20,21 @@ const dateFormats = Object.freeze({
     test: 'ddd, DD MMM YYYY HH:mm'
 });
 
+/**
+ * @param {*} val Any JS object
+ * @returns {string}
+ */
 function getType(val) {
     return typeof val;
 }
 
+/**
+ * @param {object} [time] A Date object
+ * @returns {number}
+ */
 function createUnixTime(time) {
-    if (time === (void 0)) {
+    if (!time || (time === (void 0))) {
+        // void 0 => undefined
         time = new Date();
     }
     // convert milliseconds to seconds
@@ -33,8 +42,7 @@ function createUnixTime(time) {
 }
 
 /**
- *
- * @param {array} timestamps An array of Dates
+ * @param {array} [timestamps] An array of Dates
  * @returns {object} A Date object
  */
 function getLatestTimestamp(timestamps = []) {
@@ -47,19 +55,70 @@ function getLatestTimestamp(timestamps = []) {
 }
 
 /**
- *
- * @param {number} time UTC time format
- * @param {string} [formatType='normal'] Primarily used for testing
- * @returns {*}
+ * @param {object} [time] Date object
+ * @returns {object} moment object in UTC format
  */
-function format(time, formatType = 'normal') {
-    if (typeof time.toISOString === 'function') {
-        // this is a moment date object/instance
-        time = time.toISOString();
-    }
-    return (moment.utc(time).format(dateFormats[formatType || 'normal'])).toString() + ' GMT';
+function getUtcTime(time) {
+    time = time || new Date();
+    return moment.utc(time);
 }
 
+/**
+ * Format a UTC Date value
+ * @param {number} time UTC time format
+ * @param {string} [formatType='normal'] Primarily used for testing
+ * @returns {string} header date string in GMT format
+ */
+function format(time, formatType = 'normal') {
+    if (moment.isMoment(time)) {
+        time = time.toISOString();
+    }
+    const format = dateFormats[formatType] || dateFormats['normal'];
+    return (getUtcTime(time).format(format)).toString() + ' GMT';
+}
+
+/**
+ * Promise returns a number or a moment timestamp object
+ * @param time
+ * @returns {*}
+ * @return {Promise}
+ */
+function getTimestamp(time) {
+    return new Promise((resolve, reject) => {
+
+        if (getType(time) === 'number' || (getType(time) === 'string' && +time === +time)) {
+            return resolve(+time);
+        }
+
+        const timestamp = moment.utc(new Date(time));
+        if (timestamp.isValid()) {
+            return resolve(timestamp);
+        }
+
+        return reject(time);
+    });
+}
+
+/**
+ *
+ * @param {object[]} values
+ * @returns {Promise}
+ */
+function arrayOfTimestamps(values) {
+    const promises = [];
+    values.forEach(value => {
+        promises.push(
+            getTimestamp(value)
+        );
+    });
+    return Promise.all(promises);
+}
+
+/**
+ * Gets the last modified time of a list of files
+ * @param {object[]} files An array of file path strings
+ * @returns {Promise}
+ */
 function arrayOfTimestampsFiles(files) {
     const promises = [];
 
@@ -83,6 +142,10 @@ function arrayOfTimestampsFiles(files) {
     return Promise.all(promises);
 }
 
+/**
+ * @param {string} dirPath The directory to look into
+ * @returns {Promise}
+ */
 function getTimestampFromDirectory(dirPath) {
     return new Promise((resolve, reject) => {
         fs.readdir(dirPath, (err, files) => {
@@ -98,55 +161,42 @@ function getTimestampFromDirectory(dirPath) {
             return arrayOfTimestampsFiles(files)
                 .then(timestamps => {
                     const latestTimestamp = getLatestTimestamp(timestamps);
-                    // Mon, 21 Dec 2015 19:45:29 GMT
-                    // ddd, DD MMM YYYY HH:mm:ss
                     const time = createUnixTime(latestTimestamp ? latestTimestamp : null);
                     return resolve(time);
                 })
                 .catch(err => reject(err));
         });
     });
-
-}
-
-function checkTimestampFileType(filePath) {
-    return new Promise((resolve, reject) => {
-        const path = fs.realpathSync(filePath);
-        const fileStats = fs.lstatSync(path);
-        if (fileStats.isFile()) {
-            return resolve(createUnixTime(fileStats.mtime));
-        }
-        if (fileStats.isDirectory()) {
-            return resolve(getTimestampFromDirectory(path));
-        }
-        return reject(false);
-    });
 }
 
 /**
  *
- * @param time
- * @returns {*}
- * @return number - timestamp
+ * @param {string} filePath
+ * @returns {Promise}
  */
-function getTimestamp(time) {
+function checkTimestampFileType(filePath) {
     return new Promise((resolve, reject) => {
+        // const path = fs.realpathSync(filePath);
+        fs.realpath(filePath, (err, path) => {
+            // const fileStats = fs.lstatSync(path);
+            fs.lstat(path, (err, fileStats) => {
+                if (fileStats.isFile()) {
+                    return resolve(createUnixTime(fileStats.mtime));
+                }
+                if (fileStats.isDirectory()) {
+                    return resolve(getTimestampFromDirectory(path));
+                }
+                return reject(false);
+            });
+        });
+    });
+}
 
-        if (getType(time) === 'number') {
-            return resolve(time);
-        }
-        if (getType(time) === 'string' && +time === +time) {
-            return resolve(+time);
-        }
-
-        const timestamp = moment.utc(new Date(time));
-        if (timestamp.isValid()) {
-            return resolve(timestamp);
-        }
-
+function getFileTimestamp(time) {
+    return new Promise((resolve, reject) => {
         return checkTimestampFileType(time)
-            .then(time => {
-                resolve(time);
+            .then(resolvedTime => {
+                resolve(resolvedTime);
             })
             .catch(() => {
                 resolve(createUnixTime());
@@ -154,20 +204,22 @@ function getTimestamp(time) {
     });
 }
 
-function arrayOfTimestamps(values) {
-    const promises = [];
-    values.forEach(value => {
-        promises.push(
-            getTimestamp(value)
-        );
-    });
-    return Promise.all(promises);
-}
-
+/**
+ * @module utils
+ * @type {{
+ *  dateFormats: Object,
+ *  format: format,
+ *  getUtcTime: getUtcTime,
+ *  getTimestamp: getTimestamp,
+ *  createUnixTime: createUnixTime,
+ *  checkModTimes,
+ *  getLastModified
+ * }}
+ */
 module.exports = {
     dateFormats,
-    // expose for testing
-    _format: format,
+    format,
+    getUtcTime,
     getTimestamp,
     createUnixTime,
     /**
@@ -185,9 +237,10 @@ module.exports = {
         return false;
     },
     /**
-     *
+     * All promises return a formatted date string to be used for response headers
+     * in the format of `Mon, 21 Dec 2015 19:45:29 GMT`
      * @param {array|string|null|false} compare Array of timestamps or a single path to check the last modified time
-     * @param formatType
+     * @param {string} [formatType=normal] Typically used for testing. Values of `test` and `normal` are accepted
      * @returns {Promise}
      */
     getLastModified(compare = null, formatType = 'normal') {
@@ -196,8 +249,6 @@ module.exports = {
                 return arrayOfTimestamps(compare)
                     .then(timestamps => {
                         const latestTimestamp = getLatestTimestamp(timestamps);
-                        // Mon, 21 Dec 2015 19:45:29 GMT
-                        // ddd, DD MMM YYYY HH:mm:ss
                         return resolve(format(latestTimestamp, formatType));
                     })
                     .catch(err => reject(err));
@@ -206,7 +257,13 @@ module.exports = {
                     .then(timestamp => {
                         resolve(format(timestamp, formatType));
                     })
-                    .catch(err => reject(err));
+                    .catch(() => {
+                        getFileTimestamp(compare)
+                            .then(timestamp => {
+                                resolve(format(timestamp, formatType));
+                            })
+                            .catch(err => reject(err));
+                    });
             }
             return resolve(format(createUnixTime(), formatType));
         });
