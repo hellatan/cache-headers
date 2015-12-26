@@ -9,7 +9,7 @@
 
 const onHeaders = require('on-headers');
 const cacheControl = require('./cacheControl');
-const additionalHeaders = require('./additionalHeaders');
+const { generateExpiresHeader, generateLastModifiedHeader } = require('./additionalHeaders');
 const utils = require('./utils');
 const timeValues = require('./timeValues');
 
@@ -28,5 +28,7 @@ function middleware(config) {
 module.exports = {
     headerTypes: cacheControl.headerTypes,
     middleware,
-    timeValues
+    timeValues,
+    generateExpiresHeader,
+    generateLastModifiedHeader
 };

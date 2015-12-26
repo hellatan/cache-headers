@@ -12,45 +12,38 @@ const utils = require('./utils');
 
 /**
  * @param {object} options
- * @param {number} options.maxAge
- * @param {object} options.testDate A test date object
- * @param {string} options.formatType
+ * @param {number} [options.maxAge] Additional time to add
+ * @param {object} [options.testDate] A test date object
+ * @param {string} [options.formatType] @see module:utils#format
  * @return string
  */
 function generateExpiresHeader(options = {}) {
     const { maxAge, testDate, formatType } = options;
-    const date = testDate || new Date();
-    const utcTime = moment.utc(date);
+    const utcTime = utils.getUtcTime(testDate);
     const newTime = utcTime.add(maxAge);
-    const expiresDate = moment.utc(newTime.toISOString());
-    const format = utils.dateFormats[formatType || 'normal'];
-    const formatted = expiresDate.format(format);
+    const value = utils.format(newTime.toISOString(), formatType);
 
-    // Expires: Tue, 22 Dec 2015 14:48:51 GMT
-    return `Expires: ${formatted} GMT`;
+    return {
+        headerName: 'Expires',
+        headerValue: value
+    };
 }
 
 /**
  * @param {string} lastModified
  * @return string
  */
-function generateLastModifiedHeader(lastModified) {
-    return `Last-Modified: ${lastModified} GMT`;
-}
+function generateLastModifiedHeader(options = {}) {
+    const { date, formatType } = options;
+    const value = utils.format(date, formatType);
 
-/**
- * @param {number} maxAge
- * @return bool|string
- */
-function generatePragmaHeader(maxAge) {
-    if (maxAge <= 10) {
-        return 'Pragma: no-cache';
-    }
-    return false;
+    return {
+        headerName: 'Last-Modified',
+        headerValue: value
+    };
 }
 
 module.exports = {
     generateExpiresHeader,
-    generateLastModifiedHeader,
-    generatePragmaHeader
+    generateLastModifiedHeader
 };

@@ -15,21 +15,56 @@ const utils = require('../src/utils');
 describe('additional headers methods', () => {
 
     it('should create a new expires header', () => {
-        const maxAge = 0;
+        const formatType = 'test';
+        const maxAge = 100;
         const testDate = new Date();
         const utcTime = moment.utc(testDate);
         const newTime = utcTime.add(maxAge);
-        const expiresDate = moment.utc(newTime.toISOString());
-        const format = utils.dateFormats.test;
-        const formatted = expiresDate.format(format);
-        const expect = `Expires: ${formatted} GMT`;
+        const headerValue = utils.format(newTime, formatType);
+        const expect = {
+            headerName: 'Expires',
+            headerValue
+        };
         const actual = additionalHeaders.generateExpiresHeader({
             maxAge,
             testDate,
-            formatType: 'test'
+            formatType
         });
 
-        assert.strictEqual(actual, expect);
+        assert.deepEqual(actual, expect);
+    });
+
+    it('should create a new last modified header', () => {
+        const formatType = 'test';
+        const testDate = new Date('2015-12-25 12:02:01');
+        const headerValue = utils.format(testDate, 'test');
+        const expect = {
+            headerName: 'Last-Modified',
+            headerValue
+        };
+        const actual = additionalHeaders.generateLastModifiedHeader({
+            date: testDate,
+            formatType
+        });
+
+        assert.deepEqual(actual, expect);
+    });
+
+    it('should default to "normal" format type', () => {
+        const formatType = 'invalid format typeest';
+        const testDate = new Date('2015-12-25 12:02:01');
+        const headerValue = utils.format(testDate, 'normal');
+        const expect = {
+            headerName: 'Last-Modified',
+            headerValue
+        };
+        const actual = additionalHeaders.generateLastModifiedHeader({
+            date: testDate,
+            formatType
+        });
+
+        assert.deepEqual(actual, expect);
     });
 
 });
+
