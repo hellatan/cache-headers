@@ -21,6 +21,10 @@ function isTrueObject(obj) {
     return !Array.isArray(obj) && typeof obj === 'object';
 }
 
+function setHeader(res, headerData) {
+    res.setHeader(headerData.headerName, headerData.headerValue);
+}
+
 function middleware(config) {
     return (req, res, next) => {
 
@@ -44,6 +48,7 @@ function middleware(config) {
 
 module.exports = {
     headerTypes: cacheControl.headerTypes,
+    setHeader,
     middleware,
     timeValues,
     generateExpiresHeader,
