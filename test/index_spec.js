@@ -122,12 +122,16 @@ describe('cache control middleware', function() {
     });
 
     it('sets cache control using glob negation', function (done) {
-        app = express()
-            .use(cacheControl.middleware({
-                paths:{
-                    '!/anything/**': false
-                }
-            }));
+
+        router = express.Router();
+        router.use(cacheControl.middleware({
+            paths:{
+                '!/anything/**': false
+            }
+        }));
+        app = express();
+        app.use(router);
+        agent = supertest(app);
 
         async.parallel([
             function (cb) {
