@@ -37,20 +37,24 @@ describe('cache control middleware', function() {
     });
 
     describe('path object', () => {
-        it('should set the cache header if an object is passed into the path', (done) => {
+
+        it('should set the default cache header if invalid object settings are passed in', (done) => {
+            router.get('/obj', cacheControl.middleware({
+                paths: {
+                    '/obj': {
+                        notValid: 10
+                    }
+                }
+            }));
             agent
                 .get('/obj')
-                .expect('Cache-Control', 'max-age=10')
+                .expect('Cache-Control', 'max-age=600')
                 .end(done);
         });
 
-        it('should set the default cache header if invalid object settings are passed in', (done) => {
+        it('should set the cache header if an object is passed into the path', (done) => {
             agent
-                .get('/obj', cacheControl.middleware({
-                    paths: {
-                        '/obj': { notValid: 10 }
-                    }
-                }))
+                .get('/obj')
                 .expect('Cache-Control', 'max-age=10')
                 .end(done);
         });
@@ -72,20 +76,21 @@ describe('cache control middleware', function() {
             .end(done);
     });
 
-    it('sets cache control to the passed string if specified in config file', function (done) {
+    it('sets cache control to the passed string if specified in original config file', function (done) {
         agent
             .get('/root/sub')
             .expect('Cache-Control', 'private, max-age=300')
             .end(done);
     });
 
-    it('sets cache control to the passed string if specified in config file', function (done) {
+    it('sets cache control to the passed string if specified in route-specific config file', function (done) {
+        router.get('/root/other', cacheControl.middleware({
+            cacheSettings: {
+                maxAge: 100
+            }
+        }));
         agent
-            .get('/root/other', cacheControl.middleware({
-                cacheSettings: {
-                    maxAge: 100
-                }
-            }))
+            .get('/root/other')
             .expect('Cache-Control', 'max-age=100')
             .end(done);
     });
@@ -104,16 +109,15 @@ describe('cache control middleware', function() {
             .end(done);
     });
 
-    it.only('should overwrite default cache settings', (done) => {
+    it('should overwrite default cache settings', (done) => {
+        router.get('/test/subpath', cacheControl.middleware({
+            cacheSettings: {
+                'maxAge': "3000"
+            }
+        }));
         agent
-            .get('/test/subpath', cacheControl.middleware({
-                paths: {
-                    '/test/subpath': {
-                        'maxAge': "3000"
-                    }
-                }
-            }))
-            .expect('Cache-Control', 'max-age=3000, s-maxage=3000')
+            .get('/test/subpath')
+            .expect('Cache-Control', 'max-age=3000')
             .end(done);
     });
 
