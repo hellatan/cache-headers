@@ -10,6 +10,9 @@
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
+const regular = require('regular');
+const isNumber = require('lodash.isnumber');
+const isEmpty = require('lodash.isempty');
 
 // Mon, 21 Dec 2015 19:45:29 GMT
 // php: D, d M Y H:i:s
@@ -19,6 +22,14 @@ const dateFormats = Object.freeze({
     // disregard seconds during tests
     test: 'ddd, DD MMM YYYY HH:mm'
 });
+
+function isTrueObject(obj) {
+    return !Array.isArray(obj) && typeof obj === 'object' && !isEmpty(obj) ;
+}
+
+function isNumberLike(val) {
+    return isNumber(val) || regular.number.test(val);
+}
 
 /**
  * @param {*} val Any JS object
@@ -218,6 +229,8 @@ function getFileTimestamp(time) {
  */
 module.exports = {
     dateFormats,
+    isTrueObject,
+    isNumberLike,
     format,
     getUtcTime,
     getTimestamp,

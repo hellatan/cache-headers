@@ -12,11 +12,12 @@ const express = require('express');
 const supertest = require('supertest');
 const async = require('async');
 const caches = {
+    cacheSettings: {},
     paths: {
         '/**/subpath': "31536000",
-        '/root': false,
         '/root/sub': 'private, max-age=300',
         '/root/**': false,
+        '/root': false,
         '/obj': { maxAge: 10 }
     }
 };

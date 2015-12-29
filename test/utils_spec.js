@@ -13,6 +13,22 @@ const moment = require('moment');
 const utils = require('../src/utils');
 
 describe('utils', () => {
+    describe('true object', () => {
+        it('should return `false` if an array is passed in', () => {
+            let actual = utils.isTrueObject([1, 2, 3]);
+            assert.deepEqual(actual, false);
+        });
+        it('should return `true` if an actual object is passed in', () => {
+            let actual = utils.isTrueObject({ a: 1, b: 2, c: 3 });
+            assert.deepEqual(actual, false);
+        });
+    });
+    it('should return `true` if a number is passed in as a string or number', () => {
+        let actual = utils.isNumberLike('51');
+        assert.deepEqual(actual, true);
+        actual = utils.isNumberLike(51);
+        assert.deepEqual(actual, true);
+    });
     it('should return a number', () => {
         const expect = (new Date()).getTime();
         utils.getTimestamp(expect)

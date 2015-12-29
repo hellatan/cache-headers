@@ -7,6 +7,7 @@
 
 'use strict';
 
+const utils = require('./utils');
 const timeValues = require('./timeValues');
 const headerTypes = Object.freeze({
     browser: {
@@ -28,7 +29,9 @@ const headerTypes = Object.freeze({
 });
 
 function getTimeValue(value) {
-    if (typeof value === 'string') {
+    if (utils.isNumberLike(value)) {
+        value = +value;
+    } else if (typeof value === 'string') {
         value = value.toUpperCase();
         if (!timeValues[value]) {
             console.warn(`An invalid time value was passed in, received '${value}'. Returning a value of 10`);
