@@ -12,58 +12,95 @@ const assert = require('assert');
 const moment = require('moment');
 const utils = require('../src/utils');
 
+const EXPECT_FALSE = false;
+const EXPECT_TRUE = true;
+
 describe('utils', () => {
     describe('true object', () => {
         it('should return `false` if an array is passed in', () => {
-            let actual = utils.isTrueObject([1, 2, 3]);
-            assert.deepEqual(actual, false);
+            const actual = utils.isTrueObject([1, 2, 3]);
+            assert.deepEqual(actual, EXPECT_FALSE);
         });
         it('should return `true` if an actual object is passed in', () => {
-            let actual = utils.isTrueObject({ a: 1, b: 2, c: 3 });
-            assert.deepEqual(actual, false);
+            const actual = utils.isTrueObject({ a: 1, b: 2, c: 3 });
+            assert.deepEqual(actual, EXPECT_TRUE);
         });
     });
+
     it('should return `true` if a number is passed in as a string or number', () => {
         let actual = utils.isNumberLike('51');
-        assert.deepEqual(actual, true);
+        assert.deepEqual(actual, EXPECT_TRUE);
         actual = utils.isNumberLike(51);
-        assert.deepEqual(actual, true);
-    });
-    it('should return a number', () => {
-        const expect = (new Date()).getTime();
-        utils.getTimestamp(expect)
-            .then(actual => assert.strictEqual(actual, expect))
-            .catch(err => assert.fail(err))
-            .then(() => {
-                done();
-            });
+        assert.deepEqual(actual, EXPECT_TRUE);
     });
 
-    it('should return number when passed in as a string', () => {
-        const expect = (new Date()).getTime() + '';
-        utils.getTimestamp(expect)
-            .then(actual => assert.strictEqual(actual, +expect))
-            .catch(err => assert.fail(err))
-            .then(() => {
-                done();
-            });
+    describe('getUtcTime', () => {
+        it('should get the utc time from a Date object', () => {
+            const date = new Date('2015-12-31');
+            const expect = moment.utc(date);
+            const actual = utils.getUtcTime(date);
+            // only converting toString for comparison
+            assert.strictEqual(actual.toString(), expect.toString());
+        });
+        it('should return the utc time from the fallback Date object', () => {
+            const date = new Date();
+            const expect = moment.utc(date);
+            const actual = utils.getUtcTime();
+            // only converting toString for comparison
+            assert.strictEqual(actual.toString(), expect.toString());
+        });
     });
 
-    it('should create a unix timestamp', () => {
-        const time = (new Date()).getTime();
-        const seconds = time / 1000;
+    describe('getTimestamp', () => {
 
+        it('should return a number', (done) => {
+            const expect = (new Date()).getTime();
+            utils.getTimestamp(expect)
+                .then(actual => {
+                    assert.strictEqual(actual, expect);
+                    done();
+                });
+        });
+
+        it('should return number when passed in as a string', (done) => {
+            const expect = (new Date()).getTime() + '';
+            utils.getTimestamp(expect)
+                .then(actual => {
+                    assert.strictEqual(actual, Number(expect));
+                    done();
+                });
+        });
+
+        it('should create a new Date if an invalid date is passed in', (done) => {
+            const invalid = new Date('asdfadsdf');
+            utils.getTimestamp(invalid)
+                .then(actual => {
+                    const expect = (new Date()).getTime();
+                    assert.strictEqual(actual, Number(expect));
+                    done();
+                });
+
+        });
+
+        it('should return a date from a predefined date object', (done) => {
+            const date = new Date('1982-10-18');
+            utils.getTimestamp(date)
+                .then(actual => {
+                    const expect = moment.utc('1982-10-18', 'YYYY-MM-DD');
+                    // convert these toISOString only for comparison
+                    assert.strictEqual(actual.toISOString(), expect.toISOString());
+                    done();
+                });
+        });
     });
 
     describe('file headers', () => {
         describe('single file ', () => {
             const fileName = 'testFile.json';
             const filePath = __dirname + '/' + fileName;
-            let file;
 
             beforeEach(() => {
                 fs.writeFileSync(filePath, '{ "str": "this is a recording" }');
-                file = require('./' + fileName);
             });
 
             afterEach(() => {
@@ -77,9 +114,6 @@ describe('utils', () => {
                         const isoDate = moment(date).toISOString();
                         const expect = (moment.utc(isoDate).format(utils.dateFormats.test)).toString() + " GMT";
                         assert.strictEqual(actual, expect);
-                    })
-                    .catch(err => assert.fail(err))
-                    .then(() => {
                         done();
                     });
             });
@@ -91,11 +125,6 @@ describe('utils', () => {
                             const isoDate = moment(fileStats.mtime).toISOString();
                             const expect = (moment.utc(isoDate).format(utils.dateFormats.test)).toString() + ' GMT';
                             assert.strictEqual(actual, expect);
-                        })
-                        .catch(err => {
-                            assert.fail(err);
-                        })
-                        .then(() => {
                             done();
                         });
                 });
@@ -105,21 +134,16 @@ describe('utils', () => {
                 const timeBefore = new Date('1982-10-18');
                 const timeAfter = new Date('2012-07-31');
                 const timeBetween = new Date('2007-09-18');
-                //const actual =
                 utils.getLastModified([timeBefore, timeAfter, timeBetween], 'test')
                     .then(actual => {
                         const isoDate = moment.utc('2012-07-31', 'YYYY-MM-DD').toISOString();
                         const expect = (moment.utc(isoDate).format(utils.dateFormats.test)).toString() + ' GMT';
 
                         assert.strictEqual(actual, expect);
-                    })
-                    .catch(err => assert.fail(err))
-                    .then(() => {
                         done();
                     });
             });
 
-            // test for invalid date as well
         });
 
         describe('directory of files', () => {
@@ -152,14 +176,9 @@ describe('utils', () => {
                     return utils.getLastModified(dirPath, 'test')
                         .then(actual => {
                             assert.strictEqual(actual, expect);
-                        })
-                        .catch(err => {
-                            assert.fail(err);
-                        })
-                        .then(() => {
                             fs.unlink(newFile);
                             done();
-                        })
+                        });
 
                 });
             });

@@ -53,7 +53,7 @@ function createUnixTime(time) {
 }
 
 /**
- * @param {array} [timestamps] An array of Dates
+ * @param {object[]} [timestamps] An array of Dates
  * @returns {object} A Date object
  */
 function getLatestTimestamp(timestamps = []) {
@@ -90,12 +90,12 @@ function formatDate(time, formatType = 'normal') {
 
 /**
  * Promise returns a number or a moment timestamp object
- * @param time
+ * @param {number|string|object} time if an object, a Date object
  * @returns {*}
  * @return {Promise}
  */
 function getTimestamp(time) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
 
         if (getType(time) === 'number' || (getType(time) === 'string' && +time === +time)) {
             return resolve(+time);
@@ -106,7 +106,9 @@ function getTimestamp(time) {
             return resolve(timestamp);
         }
 
-        return reject(time);
+        time = moment.utc(new Date());
+
+        return resolve(+time);
     });
 }
 
