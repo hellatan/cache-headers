@@ -9,11 +9,12 @@
 
 // time set in seconds
 const ONE_MINUTE = 60;
-const TEN_MINUTES = ONE_MINUTE * 10;
-const ONE_HOUR = TEN_MINUTES * 6;
-const ONE_DAY = ONE_HOUR * 24;
-const ONE_WEEK = ONE_DAY * 7;
-const ONE_MONTH = ONE_DAY * 30;
+const TEN_MINUTES = 600;
+const ONE_HOUR = 3600;
+const ONE_DAY = 86400;
+const ONE_WEEK = 604800;
+const ONE_MONTH = 2592000; // 30 days
+const ONE_YEAR = 31536000;
 
 /**
  * @module timeValues
@@ -25,5 +26,6 @@ module.exports = Object.freeze({
     ONE_HOUR,
     ONE_DAY,
     ONE_WEEK,
-    ONE_MONTH
+    ONE_MONTH,
+    ONE_YEAR
 });
