@@ -1,21 +1,20 @@
 {
   "name": "cache-headers",
   "version": "0.0.1",
-  "description": "Generate browser cache headers",
+  "description": "Generate browser and cdn cache header values",
   "main": "dist/index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter spec",
     "compile": "./node_modules/.bin/babel src -d dist",
-    "cp": "cp src/index.es6 dist/es6.js",
     "gitlint": "node_modules/.bin/dibslint --git --warnings -e",
-    "prepublish": "npm test && npm run compile && npm run cp"
+    "prepublish": "npm run gitlint && npm test && npm run compile"
   },
   "pre-commit": {
     "run": [
       "gitlint"
     ]
   },
-  "keywords": [],
+  "keywords": ["cache control", "last modified", "expires", "headers", "cache", "cdn", "response headers"],
   "author": "dale tan <dale@1stdibs.com> (https://1stdibs.com)",
   "repository": {
     "type": "git",
@@ -44,9 +43,7 @@
     "lodash.clone": "^3.0.3",
     "lodash.isempty": "^3.0.4",
     "lodash.isnumber": "^3.0.1",
-    "lodash.isundefined": "^3.0.1",
     "moment": "^2.10.6",
-    "on-headers": "^1.0.1",
     "regular": "^0.1.6"
   }
 }
