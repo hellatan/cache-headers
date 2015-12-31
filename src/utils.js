@@ -80,11 +80,11 @@ function getUtcTime(time) {
  * @param {string} [formatType='normal'] Primarily used for testing
  * @returns {string} header date string in GMT format
  */
-function format(time, formatType = 'normal') {
+function formatDate(time, formatType = 'normal') {
     if (moment.isMoment(time)) {
         time = time.toISOString();
     }
-    const format = dateFormats[formatType] || dateFormats['normal'];
+    const format = dateFormats[formatType] || dateFormats.normal;
     return (getUtcTime(time).format(format)).toString() + ' GMT';
 }
 
@@ -145,7 +145,7 @@ function arrayOfTimestampsFiles(files) {
                             return resolve(getTimestamp(fileStats.mtime));
                         }
                         return resolve(0);
-                    })
+                    });
                 });
             }()
         );
@@ -175,7 +175,9 @@ function getTimestampFromDirectory(dirPath) {
                     const time = createUnixTime(latestTimestamp ? latestTimestamp : null);
                     return resolve(time);
                 })
-                .catch(err => reject(err));
+                .catch(() => {
+                    reject(createUnixTime());
+                });
         });
     });
 }
@@ -187,15 +189,13 @@ function getTimestampFromDirectory(dirPath) {
  */
 function checkTimestampFileType(filePath) {
     return new Promise((resolve, reject) => {
-        // const path = fs.realpathSync(filePath);
-        fs.realpath(filePath, (err, path) => {
-            // const fileStats = fs.lstatSync(path);
-            fs.lstat(path, (err, fileStats) => {
+        fs.realpath(filePath, (err, realFilePath) => {
+            fs.lstat(realFilePath, (statErr, fileStats) => {
                 if (fileStats.isFile()) {
                     return resolve(createUnixTime(fileStats.mtime));
                 }
                 if (fileStats.isDirectory()) {
-                    return resolve(getTimestampFromDirectory(path));
+                    return resolve(getTimestampFromDirectory(realFilePath));
                 }
                 return reject(false);
             });
@@ -204,7 +204,7 @@ function checkTimestampFileType(filePath) {
 }
 
 function getFileTimestamp(time) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         return checkTimestampFileType(time)
             .then(resolvedTime => {
                 resolve(resolvedTime);
@@ -231,10 +231,10 @@ module.exports = {
     dateFormats,
     isTrueObject,
     isNumberLike,
-    format,
     getUtcTime,
     getTimestamp,
     createUnixTime,
+    format: formatDate,
     /**
      * @description If NULLs are found in modTimes array, returns FALSE
      * @param array modTimes
@@ -262,23 +262,23 @@ module.exports = {
                 return arrayOfTimestamps(compare)
                     .then(timestamps => {
                         const latestTimestamp = getLatestTimestamp(timestamps);
-                        return resolve(format(latestTimestamp, formatType));
+                        return resolve(formatDate(latestTimestamp, formatType));
                     })
                     .catch(err => reject(err));
             } else if (getType(compare) === 'string' && compare !== '') {
                 return getTimestamp(compare)
                     .then(timestamp => {
-                        resolve(format(timestamp, formatType));
+                        resolve(formatDate(timestamp, formatType));
                     })
                     .catch(() => {
                         getFileTimestamp(compare)
                             .then(timestamp => {
-                                resolve(format(timestamp, formatType));
+                                resolve(formatDate(timestamp, formatType));
                             })
                             .catch(err => reject(err));
                     });
             }
-            return resolve(format(createUnixTime(), formatType));
+            return resolve(formatDate(createUnixTime(), formatType));
         });
     }
 };
