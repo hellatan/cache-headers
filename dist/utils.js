@@ -255,7 +255,7 @@ module.exports = {
     /**
      * All promises return a formatted date string to be used for response headers
      * in the format of `Mon, 21 Dec 2015 19:45:29 GMT`
-     * @param {array|string|null|false} compare Array of timestamps or a single path to check the last modified time
+     * @param {object[]|string|null|boolean} compare Array of timestamps or a single path to check the last modified time
      * @param {string} [formatType=normal] Typically used for testing. Values of `test` and `normal` are accepted
      * @returns {Promise}
      */
