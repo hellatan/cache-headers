@@ -22,12 +22,12 @@ describe('cache control', () => {
         const sMaxAge = 100;
         const staleRevalidate = 200;
         const staleError = 300;
-        let actual = cacheControl.generate({
+        const actual = cacheControl.generate({
             sMaxAge,
             staleRevalidate,
             staleError
         });
-        let expect = {
+        const expect = {
             name: CACHE_CONTROL_STR,
             value: 'max-age=600, s-maxage=100, stale-while-revalidate=200, stale-if-error=300'
         };
@@ -68,4 +68,43 @@ describe('cache control', () => {
         assert.deepEqual(actual, expect);
 
     });
+    it('should set no-cache header and ignore even valid cache headers', () => {
+        const actual = cacheControl.generate({
+            setNoCache: true,
+            [headerTypes.browser.varName]: 'one_minute',
+            [headerTypes.cdn.varName]: 'one_week'
+        });
+        const expect = {
+            name: CACHE_CONTROL_STR,
+            value: 'no-cache, max-age=0'
+        };
+        assert.deepEqual(actual, expect);
+    });
+
+    describe('"private"', () => {
+        it('should set the header along with "private"', () => {
+            const actual = cacheControl.generate({
+                setPrivate: true,
+                [headerTypes.browser.varName]: 'ten_minutes'
+            });
+            const expect = {
+                name: CACHE_CONTROL_STR,
+                value: 'private, max-age=600'
+            };
+            assert.deepEqual(actual, expect);
+        });
+        it('should not set the "private" cache when s-maxage is passed in', () => {
+            const actual = cacheControl.generate({
+                setPrivate: true,
+                [headerTypes.browser.varName]: 'ten_minutes',
+                [headerTypes.cdn.varName]: 'one_week'
+            });
+            const expect = {
+                name: CACHE_CONTROL_STR,
+                value: 'max-age=600, s-maxage=604800'
+            };
+            assert.deepEqual(actual, expect);
+        });
+    });
+
 });

@@ -28,9 +28,15 @@ const headerTypes = Object.freeze({
     }
 });
 
+/**
+ * If a number or number-like, return the value as a number
+ * If a string, and it is in a the `timeValues` map, return that time value
+ * @param {number|string} value
+ * @returns {*}
+ */
 function getTimeValue(value) {
     if (utils.isNumberLike(value)) {
-        value = +value;
+        value = Number(value);
     } else if (typeof value === 'string') {
         value = value.toUpperCase();
         if (!timeValues[value]) {
@@ -71,26 +77,35 @@ function generateStaleError(maxAge) {
 function generateCacheControl(options) {
 
     const { maxAge = timeValues.TEN_MINUTES,
-        sMaxAge = 0,
-        staleRevalidate = 0,
-        staleError = 0,
-        setNoCache = false } = options || {};
-    const cacheHeaders = [generateBrowserCacheHeader(maxAge)];
-
-    if (sMaxAge) {
-        cacheHeaders.push(generateCdnCacheHeader(sMaxAge));
-    }
-
-    if (staleRevalidate) {
-        cacheHeaders.push(generateStaleRevalidateCacheHeader(staleRevalidate));
-    }
-
-    if (staleError) {
-        cacheHeaders.push(generateStaleError(staleError));
-    }
+        sMaxAge = false,
+        staleRevalidate = false,
+        staleError = false,
+        setNoCache = false,
+        // private should only be used for user-specific pages. ie account pages
+        // This will not be set if the sMaxAge is set
+        setPrivate = false } = options || {};
+    let cacheHeaders;
 
     if (setNoCache) {
-        cacheHeaders.push('no-cache');
+        cacheHeaders = ['no-cache', generateBrowserCacheHeader(0)];
+    } else {
+        cacheHeaders = [generateBrowserCacheHeader(maxAge)];
+
+        if (sMaxAge) {
+            cacheHeaders.push(generateCdnCacheHeader(sMaxAge));
+        }
+
+        if (staleRevalidate) {
+            cacheHeaders.push(generateStaleRevalidateCacheHeader(staleRevalidate));
+        }
+
+        if (staleError) {
+            cacheHeaders.push(generateStaleError(staleError));
+        }
+    }
+
+    if (setPrivate && !sMaxAge) {
+        cacheHeaders.unshift('private');
     }
 
     return {
@@ -99,6 +114,10 @@ function generateCacheControl(options) {
     };
 }
 
+/**
+ * @module cacheControl
+ * @type {{generate: generateCacheControl, headerTypes: Object}}
+ */
 module.exports = {
     generate: generateCacheControl,
     headerTypes
