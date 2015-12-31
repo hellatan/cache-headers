@@ -20,7 +20,7 @@ describe('additional headers methods', () => {
         const testDate = new Date();
         const utcTime = moment.utc(testDate);
         const newTime = utcTime.add(maxAge);
-        const value = utils.format(newTime, formatType);
+        const value = utils.formatDate(newTime, formatType);
         const expect = {
             name: 'Expires',
             value
@@ -37,7 +37,7 @@ describe('additional headers methods', () => {
     it('should create a new last modified header', () => {
         const formatType = 'test';
         const testDate = new Date('2015-12-25 12:02:01');
-        const value = utils.format(testDate, 'test');
+        const value = utils.formatDate(testDate, 'test');
         const expect = {
             name: 'Last-Modified',
             value
@@ -53,7 +53,7 @@ describe('additional headers methods', () => {
     it('should default to "normal" format type', () => {
         const formatType = 'invalid format typeest';
         const testDate = new Date('2015-12-25 12:02:01');
-        const value = utils.format(testDate, 'normal');
+        const value = utils.formatDate(testDate, 'normal');
         const expect = {
             name: 'Last-Modified',
             value

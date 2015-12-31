@@ -7,7 +7,6 @@
 
 'use strict';
 
-const moment = require('moment');
 const utils = require('./utils');
 
 /**
@@ -21,7 +20,7 @@ function generateExpiresHeader(options = {}) {
     const { maxAge, testDate, formatType } = options;
     const utcTime = utils.getUtcTime(testDate);
     const newTime = utcTime.add(maxAge);
-    const value = utils.format(newTime.toISOString(), formatType);
+    const value = utils.formatDate(newTime.toISOString(), formatType);
 
     return {
         name: 'Expires',
@@ -35,7 +34,7 @@ function generateExpiresHeader(options = {}) {
  */
 function generateLastModifiedHeader(options = {}) {
     const { date, formatType } = options;
-    const value = utils.format(date, formatType);
+    const value = utils.formatDate(date, formatType);
 
     return {
         name: 'Last-Modified',

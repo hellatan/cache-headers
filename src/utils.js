@@ -231,10 +231,10 @@ module.exports = {
     dateFormats,
     isTrueObject,
     isNumberLike,
+    formatDate,
     getUtcTime,
     getTimestamp,
     createUnixTime,
-    format: formatDate,
     /**
      * @description If NULLs are found in modTimes array, returns FALSE
      * @param array modTimes
