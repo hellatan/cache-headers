@@ -20,6 +20,13 @@ function setHeader(res, headerData) {
     res.setHeader(headerData.name, headerData.value);
 }
 
+/**
+ * @param {object} config
+ * @param {object} [config.cacheSettings=undefined] Cache settings to override the default `paths` settings
+ * @see module:cacheControl#generate for acceptable values
+ * @param {object} [config.paths] Cache settings with glob path patterns
+ * @returns {Function}
+ */
 function middleware(config) {
 
     const { cacheSettings, paths } = config;
@@ -40,7 +47,7 @@ function middleware(config) {
         } else if (utils.isNumberLike(cacheValue)) {
             // catch `0` before !cacheValue check
             // make sure to convert value to actual number
-            cacheValue = +cacheValue;
+            cacheValue = Number(cacheValue);
             cacheValue = cacheControl.generate({ maxAge: cacheValue, sMaxAge: cacheValue }).value;
         } else if (!cacheValue || isEmpty(cacheValue)) {
             cacheValue = cacheControl.generate().value;

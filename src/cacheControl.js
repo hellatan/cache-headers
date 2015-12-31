@@ -66,13 +66,14 @@ function generateStaleError(maxAge) {
 
 /**
  * All options can use a string value
- * @see module:timeValue
+ * @alias generate
  * @param {object} [options] Caching options
  * @param {number|string} [options.maxAge] The browser cache length
  * @param {number|string} [options.sMaxAge] The cdn cache length
  * @param {number|string} [options.staleRevalidate]
  * @param {number|string} [options.staleError]
- * @returns {{headerName: string, headerValue: string}}
+ * @see module:timeValue
+ * @returns {{name: string, value: string}}
  */
 function generateCacheControl(options) {
 
