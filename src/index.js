@@ -21,9 +21,11 @@ function setHeader(res, headerData) {
 }
 
 function middleware(config) {
+
+    const { cacheSettings, paths } = config;
+
     return (req, res, next) => {
 
-        const { cacheSettings, paths } = config;
         const pathname = url.parse(req.originalUrl).pathname;
         const cacheValues = globject(slasher(paths || {}, {value: false}));
         let cacheValue = cacheValues(slasher(pathname));
