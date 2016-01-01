@@ -3,7 +3,7 @@
 Create cache headers as application-level or route-level middleware. This has only been tested as middleware for an express app.
 The primary cache header set is the `Cache-Control` header value. All time values are set as seconds per the [w3 spec][spec].
 
-This package is developed using [ES6][es6-moz] and transpiled with [babel]. It is also using the [1stdibs eslint rules][eslint-rules]
+This package is developed using [ES6][es6-moz] and transpiled with [babel]. It is also using the [1stdibs eslint rules][eslint-rules].
 
 ## Installation
 
@@ -13,6 +13,7 @@ $ npm install --save cache-headers
 
 ## Tests
 ```sh
+$ npm install
 $ npm test
 ```
 
@@ -92,7 +93,7 @@ Rather than set the original headers defined in the `paths` config in the app-le
 
 ## API
 
-### cache.middleware (all optional properties)
+### cache.middleware (all properties optional)
 ```js
 {
     cacheSettings: {
