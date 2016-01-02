@@ -89,7 +89,7 @@ router.get('/endswith/generic', cache.middleware(cacheOptions), (req, res, next)
 
 ```
 
-Rather than set the original headers defined in the `paths` config in the app-level setup (for the ``/**/generic` path), this will output the following: `Cache-Control: max-age=2000`
+Rather than set the original headers defined in the `paths` config in the app-level setup (for the `/**/generic` path), this will output the following: `Cache-Control: max-age=2000`
 
 ## API
 
