@@ -10,6 +10,7 @@
 const utils = require('./utils');
 
 /**
+ * @memberOf additionalHeaders
  * @param {object} options
  * @param {number} [options.maxAge] Additional time to add
  * @param {object} [options.testDate] A test date object
@@ -29,7 +30,11 @@ function generateExpiresHeader(options = {}) {
 }
 
 /**
- * @param {string} lastModified
+ * @memberof additionalHeaders
+ * @alias module:additionalHeaders.generateLastModifiedHeader
+ * @param {string} options
+ * @param {object} options.date
+ * @param {string} [options.formatType]
  * @return string
  */
 function generateLastModifiedHeader(options = {}) {
@@ -42,6 +47,10 @@ function generateLastModifiedHeader(options = {}) {
     };
 }
 
+/**
+ * @module additionalHeaders
+ * @type {{generateExpiresHeader: generateExpiresHeader, generateLastModifiedHeader: generateLastModifiedHeader}}
+ */
 module.exports = {
     generateExpiresHeader,
     generateLastModifiedHeader

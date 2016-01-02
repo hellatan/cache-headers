@@ -14,8 +14,10 @@ const regular = require('regular');
 const isNumber = require('lodash.isnumber');
 const isEmpty = require('lodash.isempty');
 
-// Mon, 21 Dec 2015 19:45:29 GMT
-// php: D, d M Y H:i:s
+/**
+ * Possible date format output
+ * @type {Object}
+ */
 const dateFormats = Object.freeze({
     // all numbers have leading zero
     normal: 'ddd, DD MMM YYYY HH:mm:ss',
@@ -23,16 +25,26 @@ const dateFormats = Object.freeze({
     test: 'ddd, DD MMM YYYY HH:mm'
 });
 
-function isTrueObject(obj) {
-    return !Array.isArray(obj) && typeof obj === 'object' && !isEmpty(obj) ;
+/**
+ * @param {*} val The value to check if it is an actual object. Arrays are not considered objects in this case
+ * @returns {boolean}
+ */
+function isTrueObject(val) {
+    return !Array.isArray(val) && typeof val === 'object' && !isEmpty(val) ;
 }
 
+/**
+ *
+ * @param {*} val The value to check if it is like a number ie. 100 and "100" would return true
+ * @returns {boolean}
+ */
 function isNumberLike(val) {
     return isNumber(val) || regular.number.test(val);
 }
 
 /**
  * @param {*} val Any JS object
+ * @private
  * @returns {string}
  */
 function getType(val) {
@@ -54,6 +66,7 @@ function createUnixTime(time) {
 
 /**
  * @param {object[]} [timestamps] An array of Dates
+ * @private
  * @returns {object} A Date object
  */
 function getLatestTimestamp(timestamps = []) {
@@ -91,8 +104,7 @@ function formatDate(time, formatType = 'normal') {
 /**
  * Promise returns a number or a moment timestamp object
  * @param {number|string|object} time if an object, a Date object
- * @returns {*}
- * @return {Promise}
+ * @returns {Promise}
  */
 function getTimestamp(time) {
     return new Promise((resolve) => {
@@ -113,8 +125,10 @@ function getTimestamp(time) {
 }
 
 /**
- *
+ * Creates a wrapping promise of promises and only resolves
+ * when all promises have been resolved
  * @param {object[]} values
+ * @private
  * @returns {Promise}
  */
 function arrayOfTimestamps(values) {
@@ -129,7 +143,10 @@ function arrayOfTimestamps(values) {
 
 /**
  * Gets the last modified time of a list of files
+ * Creates a wrapping promise of promises and only resolves
+ * when all promises have been resolved
  * @param {object[]} files An array of file path strings
+ * @private
  * @returns {Promise}
  */
 function arrayOfTimestampsFiles(files) {
@@ -157,6 +174,7 @@ function arrayOfTimestampsFiles(files) {
 
 /**
  * @param {string} dirPath The directory to look into
+ * @private
  * @returns {Promise}
  */
 function getTimestampFromDirectory(dirPath) {
@@ -185,8 +203,10 @@ function getTimestampFromDirectory(dirPath) {
 }
 
 /**
- *
+ * Gets the stats of the file. This checks whether it is an actual
+ * file or a directory and delegates to other methods accordingly
  * @param {string} filePath
+ * @private
  * @returns {Promise}
  */
 function checkTimestampFileType(filePath) {
@@ -205,9 +225,14 @@ function checkTimestampFileType(filePath) {
     });
 }
 
-function getFileTimestamp(time) {
+/**
+ * @param {string} filePath Path to the file
+ * @private
+ * @returns {Promise}
+ */
+function getFileTimestamp(filePath) {
     return new Promise((resolve) => {
-        return checkTimestampFileType(time)
+        return checkTimestampFileType(filePath)
             .then(resolvedTime => {
                 resolve(resolvedTime);
             })
@@ -252,15 +277,7 @@ function getLastModified(compare = null, formatType = 'normal') {
 
 /**
  * @module utils
- * @type {{
- *  dateFormats: Object,
- *  format: format,
- *  getUtcTime: getUtcTime,
- *  getTimestamp: getTimestamp,
- *  createUnixTime: createUnixTime,
- *  checkModTimes,
- *  getLastModified
- * }}
+ * @type {Object}
  */
 module.exports = {
     dateFormats,

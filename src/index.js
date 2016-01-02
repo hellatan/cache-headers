@@ -16,14 +16,21 @@ const { generateExpiresHeader, generateLastModifiedHeader } = require('./additio
 const utils = require('./utils');
 const timeValues = require('./timeValues');
 
+/**
+ * @param {object} res The current response object
+ * @param {object} headerData
+ * @param {string} headerData.name The response header to use
+ * @param {string} headerData.value The corresponding response header value
+ */
 function setHeader(res, headerData) {
     res.setHeader(headerData.name, headerData.value);
 }
 
 /**
+ * {{@link module:cacheControl#generate}} for acceptable values
+ * @memberof index
  * @param {object} [config]
  * @param {object} [config.cacheSettings=undefined] Cache settings to override the default `paths` settings
- * @see module:cacheControl#generate for acceptable values
  * @param {object} [config.paths] Cache settings with glob path patterns
  * @returns {Function}
  */
@@ -58,7 +65,6 @@ function middleware(config) {
     };
 }
 
-<<<<<<< ours
 /**
  * @module index
  * @type {object}

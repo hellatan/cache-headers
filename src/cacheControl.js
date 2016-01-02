@@ -9,6 +9,10 @@
 
 const utils = require('./utils');
 const timeValues = require('./timeValues');
+/**
+ * @memberof module:cacheControl
+ * @type {Object}
+ */
 const headerTypes = Object.freeze({
     browser: {
         varName: 'maxAge',
@@ -31,8 +35,9 @@ const headerTypes = Object.freeze({
 /**
  * If a number or number-like, return the value as a number
  * If a string, and it is in a the `timeValues` map, return that time value
+ * @private
  * @param {number|string} value
- * @returns {*}
+ * @returns {number|string}
  */
 function getTimeValue(value) {
     if (utils.isNumberLike(value)) {
@@ -65,14 +70,14 @@ function generateStaleError(maxAge) {
 }
 
 /**
- * All options can use a string value
+ * All options can use a string value. See {@link module:timeValues} for all available values
+ * @memberof module:cacheControl
  * @alias generate
  * @param {object} [options] Caching options
  * @param {number|string} [options.maxAge] The browser cache length
  * @param {number|string} [options.sMaxAge] The cdn cache length
- * @param {number|string} [options.staleRevalidate]
- * @param {number|string} [options.staleError]
- * @see module:timeValue
+ * @param {number|string} [options.staleRevalidate] Time when to refresh the content in the background
+ * @param {number|string} [options.staleError] Time to allow for serving cache when there is an error from a back-end service
  * @returns {{name: string, value: string}}
  */
 function generateCacheControl(options) {
