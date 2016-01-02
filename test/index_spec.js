@@ -24,7 +24,7 @@ const caches = {
     }
 };
 
-describe('cache control middleware', function () {
+describe('cache control', function () {
 
     let app;
     let agent;
