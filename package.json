@@ -40,6 +40,7 @@
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.1",
     "mocha": "^2.3.3",
+    "mr-doc": "^3.0.7",
     "pre-commit": "^1.1.2",
     "supertest": "^1.1.0"
   },
