@@ -218,6 +218,39 @@ function getFileTimestamp(time) {
 }
 
 /**
+ * All promises return a formatted date string to be used for response headers
+ * in the format of `Mon, 21 Dec 2015 19:45:29 GMT`
+ * @param {object[]|string|null|boolean} compare Array of timestamps or a single path to check the last modified time
+ * @param {string} [formatType=normal] Typically used for testing. Values of `test` and `normal` are accepted
+ * @returns {Promise}
+ */
+function getLastModified(compare = null, formatType = 'normal') {
+    return new Promise((resolve, reject) => {
+        if (Array.isArray(compare) && compare.length > 0) {
+            return arrayOfTimestamps(compare)
+                .then(timestamps => {
+                    const latestTimestamp = getLatestTimestamp(timestamps);
+                    return resolve(formatDate(latestTimestamp, formatType));
+                })
+                .catch(err => reject(err));
+        } else if (getType(compare) === 'string' && compare !== '') {
+            return getTimestamp(compare)
+                .then(timestamp => {
+                    resolve(formatDate(timestamp, formatType));
+                })
+                .catch(() => {
+                    getFileTimestamp(compare)
+                        .then(timestamp => {
+                            resolve(formatDate(timestamp, formatType));
+                        })
+                        .catch(err => reject(err));
+                });
+        }
+        return resolve(formatDate(createUnixTime(), formatType));
+    });
+}
+
+/**
  * @module utils
  * @type {{
  *  dateFormats: Object,
@@ -237,50 +270,5 @@ module.exports = {
     getUtcTime,
     getTimestamp,
     createUnixTime,
-    /**
-     * @description If NULLs are found in modTimes array, returns FALSE
-     * @param array modTimes
-     * @return bool
-     */
-    checkModTimes(modTimes = [null]) {
-        const nulls = modTimes.filter(val => {
-            return typeof val !== null;
-        });
-        if (nulls.length === 0) {
-            return true;
-        }
-        return false;
-    },
-    /**
-     * All promises return a formatted date string to be used for response headers
-     * in the format of `Mon, 21 Dec 2015 19:45:29 GMT`
-     * @param {object[]|string|null|boolean} compare Array of timestamps or a single path to check the last modified time
-     * @param {string} [formatType=normal] Typically used for testing. Values of `test` and `normal` are accepted
-     * @returns {Promise}
-     */
-    getLastModified(compare = null, formatType = 'normal') {
-        return new Promise((resolve, reject) => {
-            if (Array.isArray(compare) && compare.length > 0) {
-                return arrayOfTimestamps(compare)
-                    .then(timestamps => {
-                        const latestTimestamp = getLatestTimestamp(timestamps);
-                        return resolve(formatDate(latestTimestamp, formatType));
-                    })
-                    .catch(err => reject(err));
-            } else if (getType(compare) === 'string' && compare !== '') {
-                return getTimestamp(compare)
-                    .then(timestamp => {
-                        resolve(formatDate(timestamp, formatType));
-                    })
-                    .catch(() => {
-                        getFileTimestamp(compare)
-                            .then(timestamp => {
-                                resolve(formatDate(timestamp, formatType));
-                            })
-                            .catch(err => reject(err));
-                    });
-            }
-            return resolve(formatDate(createUnixTime(), formatType));
-        });
-    }
+    getLastModified
 };
