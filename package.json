@@ -7,7 +7,9 @@
     "test": "./node_modules/.bin/mocha --reporter spec",
     "compile": "./node_modules/.bin/babel src -d dist",
     "gitlint": "node_modules/.bin/dibslint --git --warnings -e",
-    "prepublish": "npm run gitlint && npm test && npm run compile"
+    "docs": "./node_modules/.bin/mr-doc -s src/ -o docs -n 'Cache Headers'",
+    "updatedocs": "rm -rf ./docs && npm run docs && git add ./docs && git commit -n -m 'updated docs v${npm show . version}'",
+    "preversion": "npm run gitlint && npm test && npm run updatedocs && npm run compile"
   },
   "pre-commit": {
     "run": [
