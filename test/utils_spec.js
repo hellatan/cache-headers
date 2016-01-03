@@ -71,13 +71,12 @@ describe('utils', () => {
                 });
         });
 
-        it('should create a new Date if an invalid date is passed in', (done) => {
+        it('should create a new Date if an invalid date is passed in', () => {
             const invalid = new Date('asdfadsdf');
             utils.getTimestamp(invalid)
                 .then(actual => {
                     const expect = (new Date()).getTime();
                     assert.strictEqual(actual, Number(expect));
-                    done();
                 });
 
         });
