@@ -120,6 +120,10 @@ The following are acceptable values to use if a string is passed in for cache va
 
 If no options are passed in, the default value set is `Cache-Control: max-age=600`
 
+## Contributing
+All code additions and bugfixes must be accompanied by unit tests. Tests are run with mocha and
+written with the node [`assert`][assert] module.
+
 ## Acknowledgement
 A portion of this code was taken from this [cache-control][cache-control] package/repo.
 
@@ -128,3 +132,4 @@ A portion of this code was taken from this [cache-control][cache-control] packag
 [es6-moz]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/New_in_JavaScript/ECMAScript_6_support_in_Mozilla
 [spec]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.3
 [cache-control]: https://github.com/divshot/cache-control
+[assert]: https://nodejs.org/api/assert.html
