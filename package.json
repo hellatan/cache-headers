@@ -1,6 +1,6 @@
 {
   "name": "cache-headers",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Generate browser and cdn cache header values",
   "main": "dist/index.js",
   "scripts": {
@@ -14,7 +14,15 @@
       "gitlint"
     ]
   },
-  "keywords": ["cache control", "last modified", "expires", "headers", "cache", "cdn", "response headers"],
+  "keywords": [
+    "cache control",
+    "last modified",
+    "expires",
+    "headers",
+    "cache",
+    "cdn",
+    "response headers"
+  ],
   "author": "dale tan <dale@1stdibs.com> (https://1stdibs.com)",
   "repository": {
     "type": "git",
