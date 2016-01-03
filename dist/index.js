@@ -26,15 +26,17 @@ function setHeader(res, headerData) {
 }
 
 /**
- * @param {object} config
+ * @param {object} [config]
  * @param {object} [config.cacheSettings=undefined] Cache settings to override the default `paths` settings
  * @see module:cacheControl#generate for acceptable values
  * @param {object} [config.paths] Cache settings with glob path patterns
  * @returns {Function}
  */
 function middleware(config) {
-    var cacheSettings = config.cacheSettings;
-    var paths = config.paths;
+    var _ref = config || {};
+
+    var cacheSettings = _ref.cacheSettings;
+    var paths = _ref.paths;
 
     return function (req, res, next) {
 
