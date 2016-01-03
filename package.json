@@ -9,7 +9,9 @@
     "gitlint": "node_modules/.bin/dibslint --git --warnings -e",
     "docs": "./node_modules/.bin/mr-doc -s src/ -o docs -n 'Cache Headers'",
     "updatedocs": "rm -rf ./docs && npm run docs && git add ./docs && git commit -n -m 'updated docs v${npm show . version}'",
-    "preversion": "npm run gitlint && npm test && npm run updatedocs && npm run compile"
+    "generatedist": "./generate.sh compile dist",
+    "generatedocs": "./generate.sh docs docs",
+    "preversion": "npm run gitlint && npm test && npm run generatedocs && npm run generatedist"
   },
   "pre-commit": {
     "run": [
