@@ -21,7 +21,7 @@ function setHeader(res, headerData) {
 }
 
 /**
- * @param {object} config
+ * @param {object} [config]
  * @param {object} [config.cacheSettings=undefined] Cache settings to override the default `paths` settings
  * @see module:cacheControl#generate for acceptable values
  * @param {object} [config.paths] Cache settings with glob path patterns
@@ -29,7 +29,7 @@ function setHeader(res, headerData) {
  */
 function middleware(config) {
 
-    const { cacheSettings, paths } = config;
+    const { cacheSettings, paths } = config || {};
 
     return (req, res, next) => {
 

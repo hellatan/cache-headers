@@ -62,6 +62,17 @@ describe('cache control middleware', function () {
                 .end(done);
         });
 
+        it('should set default values when nothing is passed in', (done) => {
+            app = express();
+            agent = supertest(app);
+            app.use(cacheControl.middleware());
+
+            agent
+                .get('/root/sub')
+                .expect('Cache-Control', 'max-age=600')
+                .end(done);
+        });
+
     });
 
     describe('router-level middleware', () => {
