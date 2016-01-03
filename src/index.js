@@ -33,7 +33,7 @@ function setHeader(res, headerData) {
  * @param {object} [config]
  * @param {object} [config.cacheSettings=undefined] Cache settings to override the default `paths` settings
  * @param {object} [config.paths] Cache settings with glob path patterns
- * @returns {Function}
+ * @return {Function}
  */
 function middleware(config) {
 

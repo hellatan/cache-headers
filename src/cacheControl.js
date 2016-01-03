@@ -38,7 +38,7 @@ const headerTypes = Object.freeze({
  * If a string, and it is in a the `timeValues` map, return that time value
  * @private
  * @param {number|string} value
- * @returns {number|string}
+ * @return {number|string}
  */
 function getTimeValue(value) {
     if (utils.isNumberLike(value)) {
@@ -75,11 +75,11 @@ function generateStaleError(maxAge) {
  * @memberof module:cacheControl
  * @alias generate
  * @param {object} [options] Caching options
- * @param {number|string} [options.maxAge] The browser cache length
- * @param {number|string} [options.sMaxAge] The cdn cache length
- * @param {number|string} [options.staleRevalidate] Time when to refresh the content in the background
- * @param {number|string} [options.staleError] Time to allow for serving cache when there is an error from a back-end service
- * @returns {{name: string, value: string}}
+ * @param {number|string} [options.maxAge=timeValues.TEN_MINUTES] The browser cache length
+ * @param {number|string} [options.sMaxAge=false] The cdn cache length
+ * @param {number|string} [options.staleRevalidate=false] Time when to refresh the content in the background
+ * @param {number|string} [options.staleError=false] Time to allow for serving cache when there is an error from a back-end service
+ * @return {{name: string, value: string}}
  */
 function generateCacheControl(options) {
 

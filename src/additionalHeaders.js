@@ -11,12 +11,12 @@
 const utils = require('./utils');
 
 /**
- * @memberOf additionalHeaders
+ * @memberof additionalHeaders
  * @param {object} options
  * @param {number} [options.maxAge] Additional time to add
  * @param {object} [options.testDate] A test date object
- * @param {string} [options.formatType] @see module:utils#format
- * @return string
+ * @param {string} [options.formatType] {@link module:utils#formatDate}
+ * @return {{ name: string, value: string }}
  */
 function generateExpiresHeader(options = {}) {
     const { maxAge, testDate, formatType } = options;
@@ -36,7 +36,7 @@ function generateExpiresHeader(options = {}) {
  * @param {string} options
  * @param {object} options.date
  * @param {string} [options.formatType]
- * @return string
+ * @return {{ name: string, value: string }}
  */
 function generateLastModifiedHeader(options = {}) {
     const { date, formatType } = options;

@@ -28,7 +28,7 @@ const dateFormats = Object.freeze({
 
 /**
  * @param {*} val The value to check if it is an actual object. Arrays are not considered objects in this case
- * @returns {boolean}
+ * @return {boolean}
  */
 function isTrueObject(val) {
     return !Array.isArray(val) && typeof val === 'object' && !isEmpty(val) ;
@@ -37,7 +37,7 @@ function isTrueObject(val) {
 /**
  *
  * @param {*} val The value to check if it is like a number ie. 100 and "100" would return true
- * @returns {boolean}
+ * @return {boolean}
  */
 function isNumberLike(val) {
     return isNumber(val) || regular.number.test(val);
@@ -46,7 +46,7 @@ function isNumberLike(val) {
 /**
  * @param {*} val Any JS object
  * @private
- * @returns {string}
+ * @return {string}
  */
 function getType(val) {
     return typeof val;
@@ -54,7 +54,7 @@ function getType(val) {
 
 /**
  * @param {object} [time] A Date object
- * @returns {number}
+ * @return {number}
  */
 function createUnixTime(time) {
     if (!time || (time === (void 0))) {
@@ -68,7 +68,7 @@ function createUnixTime(time) {
 /**
  * @param {object[]} [timestamps] An array of Dates
  * @private
- * @returns {object} A Date object
+ * @return {object} A Date object
  */
 function getLatestTimestamp(timestamps = []) {
     timestamps.sort((a, b) => {
@@ -81,7 +81,7 @@ function getLatestTimestamp(timestamps = []) {
 
 /**
  * @param {object} [time] Date object
- * @returns {object} moment object in UTC format
+ * @return {object} moment object in UTC format
  */
 function getUtcTime(time) {
     time = time || new Date();
@@ -92,7 +92,7 @@ function getUtcTime(time) {
  * Format a UTC Date value
  * @param {number} time UTC time format
  * @param {string} [formatType='normal'] Primarily used for testing
- * @returns {string} header date string in GMT format
+ * @return {string} header date string in GMT format
  */
 function formatDate(time, formatType = 'normal') {
     if (moment.isMoment(time)) {
@@ -105,7 +105,7 @@ function formatDate(time, formatType = 'normal') {
 /**
  * Promise returns a number or a moment timestamp object
  * @param {number|string|object} time if an object, a Date object
- * @returns {Promise}
+ * @return {Promise}
  */
 function getTimestamp(time) {
     return new Promise((resolve) => {
@@ -130,7 +130,7 @@ function getTimestamp(time) {
  * when all promises have been resolved
  * @param {object[]} values
  * @private
- * @returns {Promise}
+ * @return {Promise}
  */
 function arrayOfTimestamps(values) {
     const promises = [];
@@ -148,7 +148,7 @@ function arrayOfTimestamps(values) {
  * when all promises have been resolved
  * @param {object[]} files An array of file path strings
  * @private
- * @returns {Promise}
+ * @return {Promise}
  */
 function arrayOfTimestampsFiles(files) {
     const promises = [];
@@ -176,7 +176,7 @@ function arrayOfTimestampsFiles(files) {
 /**
  * @param {string} dirPath The directory to look into
  * @private
- * @returns {Promise}
+ * @return {Promise}
  */
 function getTimestampFromDirectory(dirPath) {
     return new Promise((resolve, reject) => {
@@ -208,7 +208,7 @@ function getTimestampFromDirectory(dirPath) {
  * file or a directory and delegates to other methods accordingly
  * @param {string} filePath
  * @private
- * @returns {Promise}
+ * @return {Promise}
  */
 function checkTimestampFileType(filePath) {
     return new Promise((resolve, reject) => {
@@ -229,7 +229,7 @@ function checkTimestampFileType(filePath) {
 /**
  * @param {string} filePath Path to the file
  * @private
- * @returns {Promise}
+ * @return {Promise}
  */
 function getFileTimestamp(filePath) {
     return new Promise((resolve) => {
@@ -248,7 +248,7 @@ function getFileTimestamp(filePath) {
  * in the format of `Mon, 21 Dec 2015 19:45:29 GMT`
  * @param {object[]|string|null|boolean} compare Array of timestamps or a single path to check the last modified time
  * @param {string} [formatType=normal] Typically used for testing. Values of `test` and `normal` are accepted
- * @returns {Promise}
+ * @return {Promise}
  */
 function getLastModified(compare = null, formatType = 'normal') {
     return new Promise((resolve, reject) => {
