@@ -7,7 +7,11 @@
     "test": "./node_modules/.bin/mocha --reporter spec",
     "compile": "./node_modules/.bin/babel src -d dist",
     "gitlint": "node_modules/.bin/dibslint --git --warnings -e",
-    "prepublish": "npm run gitlint && npm test && npm run compile"
+    "docs": "./node_modules/.bin/mr-doc -s src/ -o docs -n 'Cache Headers'",
+    "updatedocs": "rm -rf ./docs && npm run docs && git add ./docs && git commit -n -m 'updated docs v${npm show . version}'",
+    "generatedist": "./generate.sh compile dist",
+    "generatedocs": "./generate.sh docs docs",
+    "preversion": "npm run gitlint && npm test && npm run generatedocs && npm run generatedist"
   },
   "pre-commit": {
     "run": [
@@ -40,6 +44,7 @@
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.1",
     "mocha": "^2.3.3",
+    "mr-doc": "^3.0.7",
     "pre-commit": "^1.1.2",
     "supertest": "^1.1.0"
   },

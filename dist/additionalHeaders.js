@@ -1,4 +1,5 @@
 /**
+ * @ignore
  * User: daletan
  * Date: 12/19/15
  * Time: 8:49 PM
@@ -10,11 +11,12 @@
 var utils = require('./utils');
 
 /**
+ * @memberof additionalHeaders
  * @param {object} options
  * @param {number} [options.maxAge] Additional time to add
  * @param {object} [options.testDate] A test date object
- * @param {string} [options.formatType] @see module:utils#format
- * @return string
+ * @param {string} [options.formatType] {@link module:utils#formatDate}
+ * @return {{ name: string, value: string }}
  */
 function generateExpiresHeader() {
     var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -33,8 +35,12 @@ function generateExpiresHeader() {
 }
 
 /**
- * @param {string} lastModified
- * @return string
+ * @memberof additionalHeaders
+ * @alias module:additionalHeaders.generateLastModifiedHeader
+ * @param {string} options
+ * @param {object} options.date
+ * @param {string} [options.formatType]
+ * @return {{ name: string, value: string }}
  */
 function generateLastModifiedHeader() {
     var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -49,6 +55,10 @@ function generateLastModifiedHeader() {
     };
 }
 
+/**
+ * @module additionalHeaders
+ * @type {{generateExpiresHeader: generateExpiresHeader, generateLastModifiedHeader: generateLastModifiedHeader}}
+ */
 module.exports = {
     generateExpiresHeader: generateExpiresHeader,
     generateLastModifiedHeader: generateLastModifiedHeader

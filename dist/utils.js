@@ -1,4 +1,5 @@
 /**
+ * @ignore
  * User: daletan
  * Date: 12/19/15
  * Time: 10:25 PM
@@ -16,8 +17,10 @@ var regular = require('regular');
 var isNumber = require('lodash.isnumber');
 var isEmpty = require('lodash.isempty');
 
-// Mon, 21 Dec 2015 19:45:29 GMT
-// php: D, d M Y H:i:s
+/**
+ * Possible date format output
+ * @type {Object}
+ */
 var dateFormats = Object.freeze({
     // all numbers have leading zero
     normal: 'ddd, DD MMM YYYY HH:mm:ss',
@@ -25,17 +28,27 @@ var dateFormats = Object.freeze({
     test: 'ddd, DD MMM YYYY HH:mm'
 });
 
-function isTrueObject(obj) {
-    return !Array.isArray(obj) && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' && !isEmpty(obj);
+/**
+ * @param {*} val The value to check if it is an actual object. Arrays are not considered objects in this case
+ * @return {boolean}
+ */
+function isTrueObject(val) {
+    return !Array.isArray(val) && (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object' && !isEmpty(val);
 }
 
+/**
+ *
+ * @param {*} val The value to check if it is like a number ie. 100 and "100" would return true
+ * @return {boolean}
+ */
 function isNumberLike(val) {
     return isNumber(val) || regular.number.test(val);
 }
 
 /**
  * @param {*} val Any JS object
- * @returns {string}
+ * @private
+ * @return {string}
  */
 function getType(val) {
     return typeof val === 'undefined' ? 'undefined' : _typeof(val);
@@ -43,7 +56,7 @@ function getType(val) {
 
 /**
  * @param {object} [time] A Date object
- * @returns {number}
+ * @return {number}
  */
 function createUnixTime(time) {
     if (!time || time === void 0) {
@@ -56,7 +69,8 @@ function createUnixTime(time) {
 
 /**
  * @param {object[]} [timestamps] An array of Dates
- * @returns {object} A Date object
+ * @private
+ * @return {object} A Date object
  */
 function getLatestTimestamp() {
     var timestamps = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
@@ -71,7 +85,7 @@ function getLatestTimestamp() {
 
 /**
  * @param {object} [time] Date object
- * @returns {object} moment object in UTC format
+ * @return {object} moment object in UTC format
  */
 function getUtcTime(time) {
     time = time || new Date();
@@ -82,7 +96,7 @@ function getUtcTime(time) {
  * Format a UTC Date value
  * @param {number} time UTC time format
  * @param {string} [formatType='normal'] Primarily used for testing
- * @returns {string} header date string in GMT format
+ * @return {string} header date string in GMT format
  */
 function formatDate(time) {
     var formatType = arguments.length <= 1 || arguments[1] === undefined ? 'normal' : arguments[1];
@@ -97,7 +111,6 @@ function formatDate(time) {
 /**
  * Promise returns a number or a moment timestamp object
  * @param {number|string|object} time if an object, a Date object
- * @returns {*}
  * @return {Promise}
  */
 function getTimestamp(time) {
@@ -119,9 +132,11 @@ function getTimestamp(time) {
 }
 
 /**
- *
+ * Creates a wrapping promise of promises and only resolves
+ * when all promises have been resolved
  * @param {object[]} values
- * @returns {Promise}
+ * @private
+ * @return {Promise}
  */
 function arrayOfTimestamps(values) {
     var promises = [];
@@ -133,8 +148,11 @@ function arrayOfTimestamps(values) {
 
 /**
  * Gets the last modified time of a list of files
+ * Creates a wrapping promise of promises and only resolves
+ * when all promises have been resolved
  * @param {object[]} files An array of file path strings
- * @returns {Promise}
+ * @private
+ * @return {Promise}
  */
 function arrayOfTimestampsFiles(files) {
     var promises = [];
@@ -159,7 +177,8 @@ function arrayOfTimestampsFiles(files) {
 
 /**
  * @param {string} dirPath The directory to look into
- * @returns {Promise}
+ * @private
+ * @return {Promise}
  */
 function getTimestampFromDirectory(dirPath) {
     return new Promise(function (resolve, reject) {
@@ -185,9 +204,11 @@ function getTimestampFromDirectory(dirPath) {
 }
 
 /**
- *
+ * Gets the stats of the file. This checks whether it is an actual
+ * file or a directory and delegates to other methods accordingly
  * @param {string} filePath
- * @returns {Promise}
+ * @private
+ * @return {Promise}
  */
 function checkTimestampFileType(filePath) {
     return new Promise(function (resolve, reject) {
@@ -205,9 +226,14 @@ function checkTimestampFileType(filePath) {
     });
 }
 
-function getFileTimestamp(time) {
+/**
+ * @param {string} filePath Path to the file
+ * @private
+ * @return {Promise}
+ */
+function getFileTimestamp(filePath) {
     return new Promise(function (resolve) {
-        return checkTimestampFileType(time).then(function (resolvedTime) {
+        return checkTimestampFileType(filePath).then(function (resolvedTime) {
             resolve(resolvedTime);
         }).catch(function () {
             resolve(createUnixTime());
@@ -216,16 +242,42 @@ function getFileTimestamp(time) {
 }
 
 /**
+ * All promises return a formatted date string to be used for response headers
+ * in the format of `Mon, 21 Dec 2015 19:45:29 GMT`
+ * @param {object[]|string|null|boolean} compare Array of timestamps or a single path to check the last modified time
+ * @param {string} [formatType=normal] Typically used for testing. Values of `test` and `normal` are accepted
+ * @return {Promise}
+ */
+function getLastModified() {
+    var compare = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+    var formatType = arguments.length <= 1 || arguments[1] === undefined ? 'normal' : arguments[1];
+
+    return new Promise(function (resolve, reject) {
+        if (Array.isArray(compare) && compare.length > 0) {
+            return arrayOfTimestamps(compare).then(function (timestamps) {
+                var latestTimestamp = getLatestTimestamp(timestamps);
+                return resolve(formatDate(latestTimestamp, formatType));
+            }).catch(function (err) {
+                return reject(err);
+            });
+        } else if (getType(compare) === 'string' && compare !== '') {
+            return getTimestamp(compare).then(function (timestamp) {
+                resolve(formatDate(timestamp, formatType));
+            }).catch(function () {
+                getFileTimestamp(compare).then(function (timestamp) {
+                    resolve(formatDate(timestamp, formatType));
+                }).catch(function (err) {
+                    return reject(err);
+                });
+            });
+        }
+        return resolve(formatDate(createUnixTime(), formatType));
+    });
+}
+
+/**
  * @module utils
- * @type {{
- *  dateFormats: Object,
- *  format: format,
- *  getUtcTime: getUtcTime,
- *  getTimestamp: getTimestamp,
- *  createUnixTime: createUnixTime,
- *  checkModTimes,
- *  getLastModified
- * }}
+ * @type {Object}
  */
 module.exports = {
     dateFormats: dateFormats,
@@ -235,54 +287,5 @@ module.exports = {
     getUtcTime: getUtcTime,
     getTimestamp: getTimestamp,
     createUnixTime: createUnixTime,
-    /**
-     * @description If NULLs are found in modTimes array, returns FALSE
-     * @param array modTimes
-     * @return bool
-     */
-    checkModTimes: function checkModTimes() {
-        var modTimes = arguments.length <= 0 || arguments[0] === undefined ? [null] : arguments[0];
-
-        var nulls = modTimes.filter(function (val) {
-            return typeof val !== null;
-        });
-        if (nulls.length === 0) {
-            return true;
-        }
-        return false;
-    },
-
-    /**
-     * All promises return a formatted date string to be used for response headers
-     * in the format of `Mon, 21 Dec 2015 19:45:29 GMT`
-     * @param {object[]|string|null|boolean} compare Array of timestamps or a single path to check the last modified time
-     * @param {string} [formatType=normal] Typically used for testing. Values of `test` and `normal` are accepted
-     * @returns {Promise}
-     */
-    getLastModified: function getLastModified() {
-        var compare = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
-        var formatType = arguments.length <= 1 || arguments[1] === undefined ? 'normal' : arguments[1];
-
-        return new Promise(function (resolve, reject) {
-            if (Array.isArray(compare) && compare.length > 0) {
-                return arrayOfTimestamps(compare).then(function (timestamps) {
-                    var latestTimestamp = getLatestTimestamp(timestamps);
-                    return resolve(formatDate(latestTimestamp, formatType));
-                }).catch(function (err) {
-                    return reject(err);
-                });
-            } else if (getType(compare) === 'string' && compare !== '') {
-                return getTimestamp(compare).then(function (timestamp) {
-                    resolve(formatDate(timestamp, formatType));
-                }).catch(function () {
-                    getFileTimestamp(compare).then(function (timestamp) {
-                        resolve(formatDate(timestamp, formatType));
-                    }).catch(function (err) {
-                        return reject(err);
-                    });
-                });
-            }
-            return resolve(formatDate(createUnixTime(), formatType));
-        });
-    }
+    getLastModified: getLastModified
 };

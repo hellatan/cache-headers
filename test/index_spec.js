@@ -1,4 +1,5 @@
 /**
+ * @ignore
  * User: daletan
  * Date: 12/26/15
  * Time: 12:44 AM
@@ -24,7 +25,7 @@ const caches = {
     }
 };
 
-describe('cache control middleware', function () {
+describe('cache control', function () {
 
     let app;
     let agent;
