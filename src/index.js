@@ -58,11 +58,14 @@ function middleware(config) {
     };
 }
 
-module.exports = {
+/**
+ * @module index
+ * @type {object}
+ */
+module.exports = Object.assign({
     headerTypes: cacheControl.headerTypes,
     setHeader,
     middleware,
-    timeValues,
     generateExpiresHeader,
     generateLastModifiedHeader
-};
+}, timeValues);

@@ -8,6 +8,8 @@
 'use strict';
 
 const cacheControl = require('../src');
+const timeValues = require('../src/timeValues');
+const assert = require('assert');
 const express = require('express');
 const supertest = require('supertest');
 const async = require('async');
@@ -30,6 +32,14 @@ describe('cache control middleware', function () {
     beforeEach(function () {
         app = express();
         agent = supertest(app);
+    });
+
+    it('should have default cache time values', () => {
+        // make sure default cache values are attached to main module export
+        Object.keys(timeValues).forEach(val => {
+            const expect = timeValues[val];
+            assert.deepEqual(cacheControl[val], expect);
+        });
     });
 
     describe('application-level middleware', () => {
