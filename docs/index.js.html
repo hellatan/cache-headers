@@ -108,7 +108,7 @@
             </thead>
             <tbody>
               <tr>
-                <td>config</td>
+                <td>[config]</td>
                 <td>object</td>
                 <td></td>
               </tr>
@@ -132,7 +132,7 @@
           <div class="description"><p>{{@link module:cacheControl#generate}} for acceptable values</p></div>
           <pre><code class="language-javascript">function middleware(config) {
 
-    const { cacheSettings, paths } = config;
+    const { cacheSettings, paths } = config || {};
 
     return (req, res, next) =&gt; {
 
@@ -168,14 +168,13 @@
             </p>
           </section>
           <div class="description"></div>
-          <pre><code class="language-javascript">module.exports = {
+          <pre><code class="language-javascript">module.exports = Object.assign({
     headerTypes,
     setHeader,
     middleware,
-    timeValues,
     generateExpiresHeader,
     generateLastModifiedHeader
-};</code></pre>
+}, timeValues);</code></pre>
         </div>
       </div>
     </div>
