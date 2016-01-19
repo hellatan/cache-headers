@@ -9,7 +9,6 @@
 'use strict';
 
 const assert = require('assert');
-const moment = require('moment');
 const additionalHeaders = require('../src/additionalHeaders');
 const utils = require('../src/utils');
 
@@ -19,8 +18,7 @@ describe('additional headers methods', () => {
         const formatType = 'test';
         const maxAge = 100;
         const testDate = new Date();
-        const utcTime = moment.utc(testDate);
-        const newTime = utcTime.add(maxAge);
+        const newTime = utils.addTime({ date: testDate, timeToAdd: maxAge });
         const value = utils.formatDate(newTime, formatType);
         const expect = {
             name: 'Expires',
