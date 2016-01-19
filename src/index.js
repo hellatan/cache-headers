@@ -13,18 +13,37 @@ const globject = require('globject');
 const slasher = require('glob-slasher');
 const isEmpty = require('lodash.isempty');
 const { headerTypes, generate } = require('./cacheControl');
-const { generateExpiresHeader, generateLastModifiedHeader } = require('./additionalHeaders');
+const additionalHeaders = require('./additionalHeaders');
 const utils = require('./utils');
 const timeValues = require('./timeValues');
 
 /**
+ * This will either set a specific header or defer to using express' res.set() functionality
+ * {{@link http://expressjs.com/en/api.html#res.set}}
  * @param {object} res The current response object
  * @param {object} headerData
- * @param {string} headerData.name The response header to use
- * @param {string} headerData.value The corresponding response header value
+ * @param {string} [headerData.name] The response header to use
+ * @param {string} [headerData.value] The corresponding response header value
  */
 function setHeader(res, headerData) {
-    res.setHeader(headerData.name, headerData.value);
+    if (headerData.name && headerData.value) {
+        res.setHeader(headerData.name, headerData.value);
+    } else if (utils.isTrueObject(headerData)) {
+        res.set(headerData);
+    }
+}
+
+function setAdditionalHeaders(options = {}) {
+    return (req, res, next) => {
+        Object.keys(options).forEach(key => {
+            if (typeof additionalHeaders[key] === 'function') {
+                const option = options[key];
+                const headerData = additionalHeaders[key](option);
+                setHeader(res, headerData);
+            }
+        });
+        next();
+    };
 }
 
 /**
@@ -72,8 +91,6 @@ function middleware(config) {
  */
 module.exports = Object.assign({
     headerTypes,
-    setHeader,
-    middleware,
-    generateExpiresHeader,
-    generateLastModifiedHeader
+    setAdditionalHeaders,
+    middleware
 }, timeValues);

@@ -52,6 +52,6 @@ function generateLastModifiedHeader(options = {}) {
  * @type {{generateExpiresHeader: generateExpiresHeader, generateLastModifiedHeader: generateLastModifiedHeader}}
  */
 module.exports = {
-    generateExpiresHeader,
-    generateLastModifiedHeader
+    expires: generateExpiresHeader,
+    lastModified: generateLastModifiedHeader
 };

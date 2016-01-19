@@ -24,7 +24,7 @@ describe('additional headers methods', () => {
             name: 'Expires',
             value
         };
-        const actual = additionalHeaders.generateExpiresHeader({
+        const actual = additionalHeaders.expires({
             maxAge,
             testDate,
             formatType
@@ -41,7 +41,7 @@ describe('additional headers methods', () => {
             name: 'Last-Modified',
             value
         };
-        const actual = additionalHeaders.generateLastModifiedHeader({
+        const actual = additionalHeaders.lastModified({
             date: testDate,
             formatType
         });
@@ -57,7 +57,7 @@ describe('additional headers methods', () => {
             name: 'Last-Modified',
             value
         };
-        const actual = additionalHeaders.generateLastModifiedHeader({
+        const actual = additionalHeaders.lastModified({
             date: testDate,
             formatType
         });
