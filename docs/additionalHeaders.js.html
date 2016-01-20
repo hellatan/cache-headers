@@ -76,7 +76,7 @@
                 <td><p>Additional time to add</p></td>
               </tr>
               <tr>
-                <td>[options.testDate]</td>
+                <td>[options.date]</td>
                 <td>object</td>
                 <td><p>A test date object</p></td>
               </tr>
@@ -94,8 +94,8 @@
           </table>
           <div class="description"></div>
           <pre><code class="language-javascript">function generateExpiresHeader(options = {}) {
-    const { maxAge, testDate, formatType } = options;
-    const newTime = utils.addTime({ date: testDate, timeToAdd: maxAge });
+    const { maxAge, date, formatType } = options;
+    const newTime = utils.addTime({ date, timeToAdd: maxAge });
     const value = utils.formatDate(newTime.toISOString(), formatType);
 
     return {

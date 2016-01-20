@@ -232,7 +232,7 @@
                 <td></td>
               </tr>
               <tr>
-                <td>[options.time=new</td>
+                <td>[options.date=new</td>
                 <td>object</td>
                 <td><p>Date()] Date object</p></td>
               </tr>
@@ -256,10 +256,10 @@
           <div class="description"></div>
           <pre><code class="language-javascript">function addTime(options = {}) {
     const {
-        time = new Date(),
+        date = new Date(),
         timeToAdd = timeValues.TEN_MINUTES,
         timeFormat = 's' } = options;
-    const utcTime = getUtcTime(time);
+    const utcTime = getUtcTime(date);
     return utcTime.add(timeToAdd, timeFormat);
 }</code></pre>
           <section id="formatDate">
