@@ -76,20 +76,37 @@
                 <td></td>
               </tr>
               <tr>
-                <td>headerData.name</td>
+                <td>[headerData.name]</td>
                 <td>string</td>
                 <td><p>The response header to use</p></td>
               </tr>
               <tr>
-                <td>headerData.value</td>
+                <td>[headerData.value]</td>
                 <td>string</td>
                 <td><p>The corresponding response header value</p></td>
               </tr>
             </tbody>
           </table>
-          <div class="description"></div>
+          <div class="description"><p>This will either set a specific header or defer to using express&#39; res.set() functionality<br />{{@link <a href="http://expressjs.com/en/api.html#res.set}}">http://expressjs.com/en/api.html#res.set}}</a></p></div>
           <pre><code class="language-javascript">function setHeader(res, headerData) {
-    res.setHeader(headerData.name, headerData.value);
+    if (headerData.name &amp;&amp; headerData.value) {
+        res.setHeader(headerData.name, headerData.value);
+    } else if (utils.isTrueObject(headerData)) {
+        res.set(headerData);
+    }
+}
+
+function setAdditionalHeaders(options = {}) {
+    return (req, res, next) =&gt; {
+        Object.keys(options).forEach(key =&gt; {
+            if (typeof additionalHeaders[key] === 'function') {
+                const option = options[key];
+                const headerData = additionalHeaders[key](option);
+                setHeader(res, headerData);
+            }
+        });
+        next();
+    };
 }</code></pre>
           <section id="middleware">
             <h1>middleware</h1>
@@ -170,10 +187,8 @@
           <div class="description"></div>
           <pre><code class="language-javascript">module.exports = Object.assign({
     headerTypes,
-    setHeader,
-    middleware,
-    generateExpiresHeader,
-    generateLastModifiedHeader
+    setAdditionalHeaders,
+    middleware
 }, timeValues);</code></pre>
         </div>
       </div>

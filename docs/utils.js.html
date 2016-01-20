@@ -49,6 +49,8 @@
               </li>
               <li><a href="#getUtcTime"><i class="alert alert-info"></i><span>getUtcTime</span></a>
               </li>
+              <li><a href="#addTime"><i class="alert alert-info"></i><span>addTime</span></a>
+              </li>
               <li><a href="#formatDate"><i class="alert alert-info"></i><span>formatDate</span></a>
               </li>
               <li><a href="#getTimestamp"><i class="alert alert-info"></i><span>getTimestamp</span></a>
@@ -205,9 +207,60 @@
             </tbody>
           </table>
           <div class="description"></div>
-          <pre><code class="language-javascript">function getUtcTime(time) {
-    time = time || new Date();
+          <pre><code class="language-javascript">function getUtcTime(time = new Date()) {
     return moment.utc(time);
+}</code></pre>
+          <section id="addTime">
+            <h1>addTime</h1>
+            <h5 class="subheader"></h5>
+            <p>
+              <div class="label label-info radius ctx-type">function</div><span>&nbsp;</span><span>addTime()</span><span>&nbsp;</span>
+            </p>
+          </section>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th style="width:20%">Option name</th>
+                <th style="width:20%">Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>options</td>
+                <td>object</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>[options.time=new</td>
+                <td>object</td>
+                <td><p>Date()] Date object</p></td>
+              </tr>
+              <tr>
+                <td>[options.timeToAdd=timeValues.TEN_MINUTES]</td>
+                <td>number</td>
+                <td><p>A number of time to add, defaults in seconds</p></td>
+              </tr>
+              <tr>
+                <td>[options.timeFormat='s']</td>
+                <td>string</td>
+                <td><p>The time format based on momentjs {{@link <a href="http://momentjs.com/docs/#/manipulating/add/}}">http://momentjs.com/docs/#/manipulating/add/}}</a></p></td>
+              </tr>
+              <tr>
+                <td>return</td>
+                <td>object</td>
+                <td><p>moment object in UTC format with additional time added</p></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="description"></div>
+          <pre><code class="language-javascript">function addTime(options = {}) {
+    const {
+        time = new Date(),
+        timeToAdd = timeValues.TEN_MINUTES,
+        timeFormat = 's' } = options;
+    const utcTime = getUtcTime(time);
+    return utcTime.add(timeToAdd, timeFormat);
 }</code></pre>
           <section id="formatDate">
             <h1>formatDate</h1>
@@ -371,7 +424,8 @@
     getUtcTime,
     getTimestamp,
     createUnixTime,
-    getLastModified
+    getLastModified,
+    addTime
 };</code></pre>
         </div>
       </div>

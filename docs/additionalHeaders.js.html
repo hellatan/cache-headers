@@ -95,8 +95,7 @@
           <div class="description"></div>
           <pre><code class="language-javascript">function generateExpiresHeader(options = {}) {
     const { maxAge, testDate, formatType } = options;
-    const utcTime = utils.getUtcTime(testDate);
-    const newTime = utcTime.add(maxAge);
+    const newTime = utils.addTime({ date: testDate, timeToAdd: maxAge });
     const value = utils.formatDate(newTime.toISOString(), formatType);
 
     return {
@@ -161,8 +160,8 @@
           </section>
           <div class="description"></div>
           <pre><code class="language-javascript">module.exports = {
-    generateExpiresHeader,
-    generateLastModifiedHeader
+    expires: generateExpiresHeader,
+    lastModified: generateLastModifiedHeader
 };</code></pre>
         </div>
       </div>
