@@ -57,7 +57,7 @@ describe('utils', () => {
         it('should add ten minutes to the current date (default settings)', () => {
             const date = new Date();
             const utcTime = utils.getUtcTime(date);
-            const expect = utcTime.add(timeValues.TEN_MINUTES);
+            const expect = utcTime.add(timeValues.TEN_MINUTES, 's');
             const actual = utils.addTime();
             assert.strictEqual(actual.toString(), expect.toString());
         });
