@@ -14,17 +14,17 @@ var utils = require('./utils');
  * @memberof additionalHeaders
  * @param {object} options
  * @param {number} [options.maxAge] Additional time to add
- * @param {object} [options.testDate] A test date object
+ * @param {object} [options.date] A test date object
  * @param {string} [options.formatType] {@link module:utils#formatDate}
  * @return {{ name: string, value: string }}
  */
 function generateExpiresHeader() {
     var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
     var maxAge = options.maxAge;
-    var testDate = options.testDate;
+    var date = options.date;
     var formatType = options.formatType;
 
-    var newTime = utils.addTime({ date: testDate, timeToAdd: maxAge });
+    var newTime = utils.addTime({ date: date, timeToAdd: maxAge });
     var value = utils.formatDate(newTime.toISOString(), formatType);
 
     return {
