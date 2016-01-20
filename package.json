@@ -1,6 +1,6 @@
 {
   "name": "cache-headers",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Generate browser and cdn cache header values",
   "main": "dist/index.js",
   "scripts": {
