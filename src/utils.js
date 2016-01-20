@@ -89,19 +89,18 @@ function getUtcTime(time = new Date()) {
 }
 
 /**
- *
  * @param {object} options
- * @param {object} [options.time=new Date()] Date object
+ * @param {object} [options.date=new Date()] Date object
  * @param {number} [options.timeToAdd=timeValues.TEN_MINUTES] A number of time to add, defaults in seconds
  * @param {string} [options.timeFormat='s'] The time format based on momentjs {{@link http://momentjs.com/docs/#/manipulating/add/}}
  * @return {object} moment object in UTC format with additional time added
  */
 function addTime(options = {}) {
     const {
-        time = new Date(),
+        date = new Date(),
         timeToAdd = timeValues.TEN_MINUTES,
         timeFormat = 's' } = options;
-    const utcTime = getUtcTime(time);
+    const utcTime = getUtcTime(date);
     return utcTime.add(timeToAdd, timeFormat);
 }
 

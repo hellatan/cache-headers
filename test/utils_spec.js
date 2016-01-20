@@ -75,6 +75,13 @@ describe('utils', () => {
             const actual = utils.addTime({ date , timeToAdd: 7, timeFormat: 'd' });
             assert.strictEqual(actual.toString(), expect.toString());
         });
+        it('should add time to a pre-existing date', () => {
+            const date = new Date('2015-12-25');
+            const utcTime = utils.getUtcTime(date);
+            const expect = utcTime.add(7, 'd');
+            const actual = utils.addTime({ date , timeToAdd: 7, timeFormat: 'd' });
+            assert.strictEqual(actual.toString(), expect.toString());
+        });
     });
 
     describe('getTimestamp', () => {
