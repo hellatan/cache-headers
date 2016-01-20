@@ -211,29 +211,56 @@ describe('cache control', function () {
 
     });
 
-    it('should setAdditionalHeaders (Expires, Last-Modified)', (done) => {
-        const testDate = new Date();
-        const lastModFormatted = utils.formatDate(testDate, 'test');
-        const timeToAdd = cacheControl.ONE_DAY;
-        const newDate = utils.addTime({ date: testDate, timeToAdd });
-        const expiresDate = utils.formatDate(newDate.toISOString(), 'test');
-        const options = {
-            expires: {
-                maxAge: timeToAdd,
-                testDate: testDate,
-                formatType: 'test'
-            },
-            lastModified: {
-                date: testDate,
-                formatType: 'test'
-            }
-        };
+    describe('setAdditionalHeaders (Expires, Last-Modified)', () => {
+        it("should set headers from today", (done) => {
+            const testDate = new Date();
+            const lastModFormatted = utils.formatDate(testDate, 'test');
+            const timeToAdd = cacheControl.ONE_DAY;
+            const newDate = utils.addTime({ timeToAdd });
+            const expiresDate = utils.formatDate(newDate.toISOString(), 'test');
+            const options = {
+                expires: {
+                    maxAge: timeToAdd,
+                    date: testDate,
+                    formatType: 'test'
+                },
+                lastModified: {
+                    date: testDate,
+                    formatType: 'test'
+                }
+            };
 
-        app.use(cacheControl.setAdditionalHeaders(options));
-        agent
-            .get('/')
-            .expect('Expires', expiresDate)
-            .expect('Last-Modified', lastModFormatted)
-            .end(done);
+            app.use(cacheControl.setAdditionalHeaders(options));
+            agent
+                .get('/')
+                .expect('Expires', expiresDate)
+                .expect('Last-Modified', lastModFormatted)
+                .end(done);
+        });
+        it('should set headers from a date that is passed in', (done) => {
+            const testDate = new Date('2015-12-26');
+            const lastModFormatted = utils.formatDate(testDate, 'test');
+            const timeToAdd = cacheControl.ONE_WEEK;
+            const newDate = utils.addTime({ date: testDate, timeToAdd });
+            const expiresDate = utils.formatDate(newDate.toISOString(), 'test');
+            const options = {
+                expires: {
+                    maxAge: timeToAdd,
+                    date: testDate,
+                    formatType: 'test'
+                },
+                lastModified: {
+                    date: testDate,
+                    formatType: 'test'
+                }
+            };
+
+            app.use(cacheControl.setAdditionalHeaders(options));
+            agent
+                .get('/')
+                .expect('Expires', expiresDate)
+                .expect('Last-Modified', lastModFormatted)
+                .end(done);
+        });
     });
 });
