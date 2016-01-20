@@ -20,8 +20,7 @@ const utils = require('./utils');
  */
 function generateExpiresHeader(options = {}) {
     const { maxAge, testDate, formatType } = options;
-    const utcTime = utils.getUtcTime(testDate);
-    const newTime = utcTime.add(maxAge);
+    const newTime = utils.addTime({ date: testDate, timeToAdd: maxAge });
     const value = utils.formatDate(newTime.toISOString(), formatType);
 
     return {
@@ -53,6 +52,6 @@ function generateLastModifiedHeader(options = {}) {
  * @type {{generateExpiresHeader: generateExpiresHeader, generateLastModifiedHeader: generateLastModifiedHeader}}
  */
 module.exports = {
-    generateExpiresHeader,
-    generateLastModifiedHeader
+    expires: generateExpiresHeader,
+    lastModified: generateLastModifiedHeader
 };

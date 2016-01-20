@@ -16,6 +16,7 @@ var moment = require('moment');
 var regular = require('regular');
 var isNumber = require('lodash.isnumber');
 var isEmpty = require('lodash.isempty');
+var timeValues = require('./timeValues');
 
 /**
  * Possible date format output
@@ -87,9 +88,31 @@ function getLatestTimestamp() {
  * @param {object} [time] Date object
  * @return {object} moment object in UTC format
  */
-function getUtcTime(time) {
-    time = time || new Date();
+function getUtcTime() {
+    var time = arguments.length <= 0 || arguments[0] === undefined ? new Date() : arguments[0];
+
     return moment.utc(time);
+}
+
+/**
+ *
+ * @param {object} options
+ * @param {object} [options.time=new Date()] Date object
+ * @param {number} [options.timeToAdd=timeValues.TEN_MINUTES] A number of time to add, defaults in seconds
+ * @param {string} [options.timeFormat='s'] The time format based on momentjs {{@link http://momentjs.com/docs/#/manipulating/add/}}
+ * @return {object} moment object in UTC format with additional time added
+ */
+function addTime() {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var _options$time = options.time;
+    var time = _options$time === undefined ? new Date() : _options$time;
+    var _options$timeToAdd = options.timeToAdd;
+    var timeToAdd = _options$timeToAdd === undefined ? timeValues.TEN_MINUTES : _options$timeToAdd;
+    var _options$timeFormat = options.timeFormat;
+    var timeFormat = _options$timeFormat === undefined ? 's' : _options$timeFormat;
+
+    var utcTime = getUtcTime(time);
+    return utcTime.add(timeToAdd, timeFormat);
 }
 
 /**
@@ -277,7 +300,7 @@ function getLastModified() {
 
 /**
  * @module utils
- * @type {Object}
+ * @type {{dateFormats: dateFormats, isTrueObject: isTrueObject, isNumberLike: isNumberLike, formatDate: formatDate, getUtcTime: getUtcTime, getTimestamp: getTimestamp, createUnixTime: createUnixTime, getLastModified: getLastModified, addTime: addTime}}
  */
 module.exports = {
     dateFormats: dateFormats,
@@ -287,5 +310,6 @@ module.exports = {
     getUtcTime: getUtcTime,
     getTimestamp: getTimestamp,
     createUnixTime: createUnixTime,
-    getLastModified: getLastModified
+    getLastModified: getLastModified,
+    addTime: addTime
 };

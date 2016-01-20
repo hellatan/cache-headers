@@ -14,6 +14,7 @@ const moment = require('moment');
 const regular = require('regular');
 const isNumber = require('lodash.isnumber');
 const isEmpty = require('lodash.isempty');
+const timeValues = require('./timeValues');
 
 /**
  * Possible date format output
@@ -83,9 +84,25 @@ function getLatestTimestamp(timestamps = []) {
  * @param {object} [time] Date object
  * @return {object} moment object in UTC format
  */
-function getUtcTime(time) {
-    time = time || new Date();
+function getUtcTime(time = new Date()) {
     return moment.utc(time);
+}
+
+/**
+ *
+ * @param {object} options
+ * @param {object} [options.time=new Date()] Date object
+ * @param {number} [options.timeToAdd=timeValues.TEN_MINUTES] A number of time to add, defaults in seconds
+ * @param {string} [options.timeFormat='s'] The time format based on momentjs {{@link http://momentjs.com/docs/#/manipulating/add/}}
+ * @return {object} moment object in UTC format with additional time added
+ */
+function addTime(options = {}) {
+    const {
+        time = new Date(),
+        timeToAdd = timeValues.TEN_MINUTES,
+        timeFormat = 's' } = options;
+    const utcTime = getUtcTime(time);
+    return utcTime.add(timeToAdd, timeFormat);
 }
 
 /**
@@ -278,7 +295,7 @@ function getLastModified(compare = null, formatType = 'normal') {
 
 /**
  * @module utils
- * @type {Object}
+ * @type {{dateFormats: dateFormats, isTrueObject: isTrueObject, isNumberLike: isNumberLike, formatDate: formatDate, getUtcTime: getUtcTime, getTimestamp: getTimestamp, createUnixTime: createUnixTime, getLastModified: getLastModified, addTime: addTime}}
  */
 module.exports = {
     dateFormats,
@@ -288,5 +305,6 @@ module.exports = {
     getUtcTime,
     getTimestamp,
     createUnixTime,
-    getLastModified
+    getLastModified,
+    addTime
 };

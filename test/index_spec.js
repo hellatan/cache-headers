@@ -10,6 +10,7 @@
 
 const cacheControl = require('../src');
 const timeValues = require('../src/timeValues');
+const utils = require('../src/utils');
 const assert = require('assert');
 const express = require('express');
 const supertest = require('supertest');
@@ -208,5 +209,31 @@ describe('cache control', function () {
             ], done);
         });
 
+    });
+
+    it('should setAdditionalHeaders (Expires, Last-Modified)', (done) => {
+        const testDate = new Date();
+        const lastModFormatted = utils.formatDate(testDate, 'test');
+        const timeToAdd = cacheControl.ONE_DAY;
+        const newDate = utils.addTime({ date: testDate, timeToAdd });
+        const expiresDate = utils.formatDate(newDate.toISOString(), 'test');
+        const options = {
+            expires: {
+                maxAge: timeToAdd,
+                testDate: testDate,
+                formatType: 'test'
+            },
+            lastModified: {
+                date: testDate,
+                formatType: 'test'
+            }
+        };
+
+        app.use(cacheControl.setAdditionalHeaders(options));
+        agent
+            .get('/')
+            .expect('Expires', expiresDate)
+            .expect('Last-Modified', lastModFormatted)
+            .end(done);
     });
 });

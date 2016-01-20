@@ -12,6 +12,7 @@ const fs = require('fs');
 const assert = require('assert');
 const moment = require('moment');
 const utils = require('../src/utils');
+const timeValues = require('../src/timeValues');
 
 const EXPECT_FALSE = false;
 const EXPECT_TRUE = true;
@@ -48,6 +49,30 @@ describe('utils', () => {
             const expect = moment.utc(date);
             const actual = utils.getUtcTime();
             // only converting toString for comparison
+            assert.strictEqual(actual.toString(), expect.toString());
+        });
+    });
+
+    describe('addTime', () => {
+        it('should add ten minutes to the current date (default settings)', () => {
+            const date = new Date();
+            const utcTime = utils.getUtcTime(date);
+            const expect = utcTime.add(timeValues.TEN_MINUTES);
+            const actual = utils.addTime();
+            assert.strictEqual(actual.toString(), expect.toString());
+        });
+        it('should add the passed in amount of time to the date', () => {
+            const date = new Date();
+            const utcTime = utils.getUtcTime(date);
+            const expect = utcTime.add(timeValues.ONE_YEAR, 's');
+            const actual = utils.addTime({ date , timeToAdd: timeValues.ONE_YEAR });
+            assert.strictEqual(actual.toString(), expect.toString());
+        });
+        it('should add time based on days', () => {
+            const date = new Date();
+            const utcTime = utils.getUtcTime(date);
+            const expect = utcTime.add(7, 'd');
+            const actual = utils.addTime({ date , timeToAdd: 7, timeFormat: 'd' });
             assert.strictEqual(actual.toString(), expect.toString());
         });
     });
@@ -167,8 +192,8 @@ describe('utils', () => {
                 return fs.writeFile(newFile, `{ "str": "this is a recording 3" }`, () => {
                     const maxAge = 0;
                     const testDate = new Date();
-                    const utcTime = moment.utc(testDate);
-                    const newTime = utcTime.add(maxAge);
+                    const newTime = utils.addTime({ date: testDate, timeToAdd: maxAge });
+
                     const expiresDate = moment.utc(newTime.toISOString());
                     const format = utils.dateFormats.test;
                     const expect = expiresDate.format(format).toString() + ' GMT';
