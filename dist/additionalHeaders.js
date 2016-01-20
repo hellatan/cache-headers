@@ -24,8 +24,7 @@ function generateExpiresHeader() {
     var testDate = options.testDate;
     var formatType = options.formatType;
 
-    var utcTime = utils.getUtcTime(testDate);
-    var newTime = utcTime.add(maxAge);
+    var newTime = utils.addTime({ date: testDate, timeToAdd: maxAge });
     var value = utils.formatDate(newTime.toISOString(), formatType);
 
     return {
@@ -60,6 +59,6 @@ function generateLastModifiedHeader() {
  * @type {{generateExpiresHeader: generateExpiresHeader, generateLastModifiedHeader: generateLastModifiedHeader}}
  */
 module.exports = {
-    generateExpiresHeader: generateExpiresHeader,
-    generateLastModifiedHeader: generateLastModifiedHeader
+    expires: generateExpiresHeader,
+    lastModified: generateLastModifiedHeader
 };

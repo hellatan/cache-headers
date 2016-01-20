@@ -18,22 +18,39 @@ var _require = require('./cacheControl');
 var headerTypes = _require.headerTypes;
 var generate = _require.generate;
 
-var _require2 = require('./additionalHeaders');
-
-var generateExpiresHeader = _require2.generateExpiresHeader;
-var generateLastModifiedHeader = _require2.generateLastModifiedHeader;
-
+var additionalHeaders = require('./additionalHeaders');
 var utils = require('./utils');
 var timeValues = require('./timeValues');
 
 /**
+ * This will either set a specific header or defer to using express' res.set() functionality
+ * {{@link http://expressjs.com/en/api.html#res.set}}
  * @param {object} res The current response object
  * @param {object} headerData
- * @param {string} headerData.name The response header to use
- * @param {string} headerData.value The corresponding response header value
+ * @param {string} [headerData.name] The response header to use
+ * @param {string} [headerData.value] The corresponding response header value
  */
 function setHeader(res, headerData) {
-    res.setHeader(headerData.name, headerData.value);
+    if (headerData.name && headerData.value) {
+        res.setHeader(headerData.name, headerData.value);
+    } else if (utils.isTrueObject(headerData)) {
+        res.set(headerData);
+    }
+}
+
+function setAdditionalHeaders() {
+    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+    return function (req, res, next) {
+        Object.keys(options).forEach(function (key) {
+            if (typeof additionalHeaders[key] === 'function') {
+                var option = options[key];
+                var headerData = additionalHeaders[key](option);
+                setHeader(res, headerData);
+            }
+        });
+        next();
+    };
 }
 
 /**
@@ -83,8 +100,6 @@ function middleware(config) {
  */
 module.exports = Object.assign({
     headerTypes: headerTypes,
-    setHeader: setHeader,
-    middleware: middleware,
-    generateExpiresHeader: generateExpiresHeader,
-    generateLastModifiedHeader: generateLastModifiedHeader
+    setAdditionalHeaders: setAdditionalHeaders,
+    middleware: middleware
 }, timeValues);
