@@ -12,7 +12,6 @@ const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
 const regular = require('regular');
-const isNumber = require('lodash.isnumber');
 const isEmpty = require('lodash.isempty');
 const timeValues = require('./timeValues');
 
@@ -31,8 +30,8 @@ const dateFormats = Object.freeze({
  * @param {*} val The value to check if it is an actual object. Arrays are not considered objects in this case
  * @return {boolean}
  */
-function isTrueObject(val) {
-    return !Array.isArray(val) && typeof val === 'object' && !isEmpty(val) ;
+export function isNonEmptyObject(val) {
+    return !Array.isArray(val) && typeof val === 'object' && !isEmpty(val);
 }
 
 /**
@@ -40,8 +39,8 @@ function isTrueObject(val) {
  * @param {*} val The value to check if it is like a number ie. 100 and "100" would return true
  * @return {boolean}
  */
-function isNumberLike(val) {
-    return isNumber(val) || regular.number.test(val);
+export function isNumberLike(val) {
+    return regular.number.test(val);
 }
 
 /**
