@@ -53,10 +53,8 @@
     "fast-url-parser": "^1.1.3",
     "glob-slasher": "^1.0.1",
     "globject": "^1.0.1",
-    "lodash.clone": "^3.0.3",
     "lodash.isempty": "^3.0.4",
-    "lodash.isnumber": "^3.0.1",
-    "moment": "^2.10.6",
+    "moment": "^2.15.2",
     "regular": "^0.1.6"
   }
 }

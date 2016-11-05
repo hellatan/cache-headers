@@ -8,124 +8,173 @@
 
 'use strict';
 
-const utils = require('./utils');
-const timeValues = require('./timeValues');
+import {isNumberLike, formatDate} from './utils';
+import * as timeValues from './timeValues';
+export const PRIVATE_VALUE = 'private';
+export const NO_CACHE_NO_STORE = 'no-cache, no-store, must-revalidate';
+
 /**
- * @memberof module:cacheControl
+ * Maps to keys in the different cache methods
  * @type {Object}
  */
-const headerTypes = Object.freeze({
-    browser: {
-        varName: 'maxAge',
-        value: 'max-age'
-    },
-    cdn: {
-        varName: 'sMaxAge',
-        value: 's-maxage'
-    },
-    staleRevalidate: {
-        varName: 'staleRevalidate',
-        value: 'stale-while-revalidate'
-    },
-    staleError: {
-        varName: 'staleError',
-        value: 'stale-if-error'
-    }
+export const headerTypes = Object.freeze({
+    surrogateControl: 'maxAge',
+    staleRevalidate: 'staleRevalidate',
+    staleError: 'staleError'
 });
 
 /**
  * If a number or number-like, return the value as a number
  * If a string, and it is in a the `timeValues` map, return that time value
- * @private
- * @param {number|string} value
+ * @param {number|string|*} value
  * @return {number|string}
  */
 function getTimeValue(value) {
-    if (utils.isNumberLike(value)) {
+    if (isNumberLike(value)) {
         value = Number(value);
     } else if (typeof value === 'string') {
+        // checks for values listed in ./timeValues
         value = value.toUpperCase();
         if (!timeValues[value]) {
-            console.warn(`An invalid time value was passed in, received '${value}'. Returning a value of 10`);
-            return 10;
+            console.warn(`An invalid time value was passed in, received '${value}'. Returning a value of 0`);
+            return 0;
         }
         return timeValues[value];
     }
-    return value;
+    // if no valid value, always return a number
+    console.warn(`no valid time value found. ${value} was passed in. returning 0`);
+    return typeof value === 'number' ? value : 0;
 }
 
-function generateBrowserCacheHeader(maxAge) {
-    return `${headerTypes.browser.value}=${getTimeValue(maxAge)}`;
+/**
+ *
+ * @param {boolean} usePrivate Used for user-specific pages
+ * @returns {*}
+ */
+function generateBrowserCacheHeader(usePrivate = false) {
+    if (usePrivate) {
+        return `${PRIVATE_VALUE}, ${NO_CACHE_NO_STORE}`;
+    }
+    return NO_CACHE_NO_STORE;
 }
 
-function generateCdnCacheHeader(maxAge) {
-    return `${headerTypes.cdn.value}=${getTimeValue(maxAge)}`;
+/**
+ * @param {string|number} maxAge
+ * @returns {string}
+ */
+function generateMaxAgeHeader(maxAge) {
+    return `max-age=${getTimeValue(maxAge)}`;
 }
 
+/**
+ * @param {string|number} maxAge
+ * @returns {string}
+ */
 function generateStaleRevalidateCacheHeader(maxAge) {
-    return `${headerTypes.staleRevalidate.value}=${getTimeValue(maxAge)}`;
+    return `stale-while-revalidate=${getTimeValue(maxAge)}`;
 }
 
+/**
+ * @param {string|number} maxAge
+ * @returns {string}
+ */
 function generateStaleError(maxAge) {
-    return `${headerTypes.staleError.value}=${getTimeValue(maxAge)}`;
+    return `stale-if-error=${getTimeValue(maxAge)}`;
 }
 
 /**
  * All options can use a string value. See {@link module:timeValues} for all available values
+ * Returns the cache header name as the key for res.set()
  * @memberof module:cacheControl
  * @alias generate
  * @param {object} [options] Caching options
- * @param {number|string} [options.maxAge=timeValues.TEN_MINUTES] The browser cache length
- * @param {number|string} [options.sMaxAge=false] The cdn cache length
  * @param {number|string} [options.staleRevalidate=false] Time when to refresh the content in the background
  * @param {number|string} [options.staleError=false] Time to allow for serving cache when there is an error from a back-end service
- * @return {{name: string, value: string}}
+ * @param {boolean} [options.setPrivate=false] use the `private` cache header value for user-specific pages
+ * @returns {{Cache-Control: string}}
  */
-function generateCacheControl(options) {
-
-    const { maxAge = timeValues.TEN_MINUTES,
-        sMaxAge = false,
+function generateCacheControl(options = {}) {
+    const {
         staleRevalidate = false,
         staleError = false,
-        setNoCache = false,
         // private should only be used for user-specific pages. ie account pages
-        // This will not be set if the sMaxAge is set
-        setPrivate = false } = options || {};
-    let cacheHeaders;
+        setPrivate = false } = options;
+    const cacheHeaders = [generateBrowserCacheHeader(setPrivate)];
 
-    if (setNoCache) {
-        cacheHeaders = ['no-cache', generateBrowserCacheHeader(0)];
-    } else {
-        cacheHeaders = [generateBrowserCacheHeader(maxAge)];
-
-        if (sMaxAge) {
-            cacheHeaders.push(generateCdnCacheHeader(sMaxAge));
-        }
-
-        if (staleRevalidate) {
-            cacheHeaders.push(generateStaleRevalidateCacheHeader(staleRevalidate));
-        }
-
-        if (staleError) {
-            cacheHeaders.push(generateStaleError(staleError));
-        }
+    if (typeof staleRevalidate !== 'boolean') {
+        cacheHeaders.push(generateStaleRevalidateCacheHeader(staleRevalidate));
     }
 
-    if (setPrivate && !sMaxAge) {
-        cacheHeaders.unshift('private');
+    if (typeof staleError !== 'boolean') {
+        cacheHeaders.push(generateStaleError(staleError));
     }
 
     return {
-        name: 'Cache-Control',
-        value: `${cacheHeaders.join(', ')}`
+        'Cache-Control': `${cacheHeaders.join(', ')}`
     };
 }
 
 /**
- * @module cacheControl
- * @type {{generate: generateCacheControl, headerTypes: Object}}
+ * Returns the cache header name as the key for res.set()
+ * @param {object} options
+ * @param {number|string} [options.maxAge=timeValues.TEN_MINUTES] The browser cache length
+ * @param {boolean} [options.setPrivate=false] Set the max-age value to 0 for user-specific pages
+ * @returns {{Surrogate-Control: string}}
  */
-module.exports = {
-    generate: generateCacheControl,
-    headerTypes
-};
+function generateSurrogateControl(options = {}) {
+    const {
+        // private should only be used for user-specific pages. ie account pages
+        setPrivate = false
+    } = options;
+    let { maxAge } = options;
+    if (maxAge === undefined) {
+        // only default this if maxAge is undefined
+        // since 0 can be passed in
+        maxAge = timeValues.TEN_MINUTES;
+    }
+    // always force time to 0 if setPrivate - usually user-specific content
+    const time = setPrivate ? 0 : maxAge;
+
+    return {
+        'Surrogate-Control': generateMaxAgeHeader(time)
+    };
+}
+
+function generatePragmaHeader() {
+    return {
+        'Pragma': 'no-cache'
+    };
+}
+
+function generateExpiresHeader() {
+    return {
+        'Expires': 0
+    };
+}
+
+function generateLastModifiedHeader(options = {}) {
+    let {lastModified = false} = options;
+
+    if (!lastModified) {
+        lastModified = formatDate();
+    }
+    return {
+        'Last-Modified': lastModified
+    };
+}
+
+/**
+ * @see `generateCacheControl`, `generateSurrogateControl`, and `generateLastModifiedHeader` for options
+ * @param options
+ * @returns {*[]}
+ */
+export function generateAllCacheHeaders(options = {}) {
+    return Object.assign(
+        {},
+        generateCacheControl(options),
+        generateSurrogateControl(options),
+        generatePragmaHeader(),
+        generateExpiresHeader(),
+        generateLastModifiedHeader(options)
+    );
+}

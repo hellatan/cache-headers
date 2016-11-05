@@ -11,6 +11,7 @@
 // time set in seconds
 const ONE_MINUTE = 60;
 const TEN_MINUTES = 600;
+const HALF_HOUR = 1800;
 const ONE_HOUR = 3600;
 const ONE_DAY = 86400;
 const ONE_WEEK = 604800;
@@ -21,12 +22,13 @@ const ONE_YEAR = 31536000;
  * @module timeValues
  * @type {Object}
  */
-module.exports = Object.freeze({
+export {
     ONE_MINUTE,
     TEN_MINUTES,
+    HALF_HOUR,
     ONE_HOUR,
     ONE_DAY,
     ONE_WEEK,
     ONE_MONTH,
     ONE_YEAR
-});
+};
