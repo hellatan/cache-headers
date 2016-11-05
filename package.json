@@ -4,7 +4,7 @@
   "description": "Generate browser and cdn cache header values",
   "main": "dist/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --reporter spec",
+    "test": "mocha",
     "compile": "./node_modules/.bin/babel src -d dist",
     "gitlint": "node_modules/.bin/dibslint --git --warnings -e",
     "docs": "./node_modules/.bin/mr-doc -s src/ -o docs -n 'Cache Headers'",
