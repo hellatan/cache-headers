@@ -8,11 +8,7 @@
 
 'use strict';
 
-import {
-    now,
-    isMoment,
-    createUTC as utc
-} from 'moment/src/lib/moment/moment';
+import {now, createUTC as utc} from 'moment/src/lib/moment/moment';
 import {getSetGlobalLocale} from 'moment/src/lib/locale/locale';
 import {formatMoment} from 'moment/src/lib/format/format';
 import regular from 'regular';
@@ -48,17 +44,21 @@ function getUtcTime(time = new Date()) {
 
 /**
  * Format a UTC Date value
- * @param {number} [time=now()] UTC time format
- * @param {string} [dateFormat=defaultDateFormat] Primarily used for testing
+ * @param {object} options
+ * @param {number} [options.date=now()] UTC time format. A JavaScript date must be passed in, not a moment date object
+ * @param {string} [options.dateFormat=defaultDateFormat] Primarily used for testing
+ * @param {string} [options.locale={key: string, config: array}] See http://momentjs.com/docs/#/use-it/typescript/
  * @return {string} header date string in GMT format
  */
-export function formatDate(time = now(), dateFormat = defaultDateFormat) {
-    if (isMoment(time)) {
-        time = time.toISOString();
-    }
+export function formatDate(options = {}) {
+    const {
+        date = now(),
+        dateFormat = defaultDateFormat,
+        locale = {key: undefined, config: undefined}
+    } = options;
     // need to set locale before formatting
-    getSetGlobalLocale();
-    const formatted = formatMoment(getUtcTime(time), dateFormat);
+    getSetGlobalLocale(locale.key, locale.config);
+    const formatted = formatMoment(getUtcTime(date), dateFormat);
     // do browsers require using GMT instead of UTC?
     return formatted.replace('UTC', 'GMT');
 }

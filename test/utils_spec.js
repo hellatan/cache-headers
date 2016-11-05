@@ -10,6 +10,8 @@
 
 import assert from 'assert';
 import {isNonEmptyObject, isNumberLike, formatDate} from '../src/utils';
+import {getSetGlobalLocale} from 'moment/src/lib/locale/locale';
+import fr from 'moment/src/locale/fr';
 
 const EXPECT_FALSE = false;
 const EXPECT_TRUE = true;
@@ -47,13 +49,26 @@ describe('utils', function () {
 
     describe('formatDate', function () {
         const date = new Date('2001-01-01');
+        const formatted = 'Mon, 01 Jan 2001 00:00:00 GMT';
+        beforeEach(function () {
+            // not doing this makes `fr` the locale for every test
+            getSetGlobalLocale('en');
+        });
         it('should format the date based on the default format', function () {
-            const now = formatDate(date);
-            assert.equal(now, 'Mon, 01 Jan 2001 00:00:00 GMT');
+            const now = formatDate({date});
+            assert.equal(now, formatted);
         });
         it('should format the date based on the passed in format', function () {
-            const now = formatDate(date, 'ddd YYYY');
+            const now = formatDate({date, dateFormat: 'ddd YYYY'});
             assert.equal(now, 'Mon 2001');
+        });
+        it('should format the date based on the passed in format and locale config', function () {
+            const locale = {
+                key: 'fr',
+                config: fr
+            };
+            const now = formatDate({date, dateFormat: 'ddd YYYY', locale});
+            assert.equal(now, 'lun. 2001');
         });
     });
 
