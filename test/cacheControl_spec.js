@@ -1,17 +1,13 @@
-/**
- * @ignore
- * User: daletan
- * Date: 12/22/15
- * Time: 7:26 PM
- * Copyright 1stdibs.com, Inc. 2015. All Rights Reserved.
- */
-
-'use strict';
-
 import assert from 'assert';
 import * as timeValues from '../src/timeValues';
 import { formatDate } from '../src/utils';
-import {headerTypes, generateAllCacheHeaders, NO_CACHE_NO_STORE} from '../src/cacheControl';
+import {generateAllCacheHeaders, NO_CACHE_NO_STORE} from '../src/cacheControl';
+import {
+    KEY_LAST_MODIFIED,
+    KEY_STALE_IF_ERROR,
+    KEY_STALE_WHILE_REVALIDATE,
+    KEY_SURROGATE_CONTROL
+} from '../src/headerTypes';
 
 const now = formatDate(new Date('2001-01-01'));
 const CACHE_CONTROL_STR = 'Cache-Control';
@@ -25,7 +21,7 @@ const staticHeaders = {
 
 // default this value, can use in Object.assign if necessary
 const lastModifiedHeader = {
-    lastModified: now
+    [KEY_LAST_MODIFIED]: now
 };
 
 describe('cache control', function () {
@@ -48,11 +44,9 @@ describe('cache control', function () {
         headerAssertions(actual, expect);
     });
     it('should set all headers passed in along with default max-age header not passed in', function () {
-        const staleRevalidate = 200;
-        const staleError = 300;
         const actual = generateAllCacheHeaders(createOptions({
-            staleRevalidate,
-            staleError
+            [KEY_STALE_WHILE_REVALIDATE]: 200,
+            [KEY_STALE_IF_ERROR]: 300
         }));
         const expect = {
             [CACHE_CONTROL_STR]: `${NO_CACHE_NO_STORE}, stale-while-revalidate=200, stale-if-error=300`,
@@ -62,8 +56,8 @@ describe('cache control', function () {
     });
     it('should set all headers passed in defined with string keywords and numbers', function () {
         const actual = generateAllCacheHeaders(createOptions({
-            [headerTypes.staleRevalidate]: 'ONE_MINUTE',
-            [headerTypes.staleError]: 10
+            [KEY_STALE_WHILE_REVALIDATE]: 'ONE_MINUTE',
+            [KEY_STALE_IF_ERROR]: 10
         }));
         const expect = {
             [CACHE_CONTROL_STR]: `${NO_CACHE_NO_STORE}, stale-while-revalidate=60, stale-if-error=10`,
@@ -74,7 +68,7 @@ describe('cache control', function () {
     it('should add `private` cache-control and set surrogate-control max-age to 0 when set to private', function () {
         const actual = generateAllCacheHeaders(createOptions({
             setPrivate: true,
-            [headerTypes.surrogateControl]: timeValues.ONE_DAY
+            [KEY_SURROGATE_CONTROL]: timeValues.ONE_DAY
         }));
         const expect = {
             [CACHE_CONTROL_STR]: `private, ${NO_CACHE_NO_STORE}`,
@@ -84,11 +78,33 @@ describe('cache control', function () {
     });
     it('should properly case the string value and return the correct time', function () {
         const actual = generateAllCacheHeaders(createOptions({
-            [headerTypes.staleRevalidate]: 'one_minute',
-            [headerTypes.staleError]: 'one_week'
+            [KEY_STALE_WHILE_REVALIDATE]: 'one_minute',
+            [KEY_STALE_IF_ERROR]: 'one_week'
         }));
         const expect = {
             [CACHE_CONTROL_STR]: `${NO_CACHE_NO_STORE}, stale-while-revalidate=60, stale-if-error=604800`,
+            [SURROGATE_CONTROL_STR]: 'max-age=600'
+        };
+        headerAssertions(actual, expect);
+    });
+    it('should return 0 for an invalid value passed in', function () {
+        const actual = generateAllCacheHeaders(createOptions({
+            [KEY_STALE_WHILE_REVALIDATE]: '10minute',
+            [KEY_STALE_IF_ERROR]: 'never'
+        }));
+        const expect = {
+            [CACHE_CONTROL_STR]: `${NO_CACHE_NO_STORE}, stale-while-revalidate=0, stale-if-error=0`,
+            [SURROGATE_CONTROL_STR]: 'max-age=600'
+        };
+        headerAssertions(actual, expect);
+    });
+    it('should not set stale headers if set to false', function () {
+        const actual = generateAllCacheHeaders(createOptions({
+            [KEY_STALE_WHILE_REVALIDATE]: false,
+            [KEY_STALE_IF_ERROR]: false
+        }));
+        const expect = {
+            [CACHE_CONTROL_STR]: NO_CACHE_NO_STORE,
             [SURROGATE_CONTROL_STR]: 'max-age=600'
         };
         headerAssertions(actual, expect);
@@ -116,7 +132,7 @@ describe('cache control', function () {
         times.forEach(function (time) {
             it(`should correctly set the time value for ${time}`, function () {
                 const options = createOptions.call(null, {
-                    [headerTypes.surrogateControl]: time
+                    [KEY_SURROGATE_CONTROL]: time
                 });
                 const actual = generateAllCacheHeaders.call(null, options);
                 const expect = createExpect.call(null, time);

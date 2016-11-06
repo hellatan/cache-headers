@@ -1,27 +1,11 @@
-/**
- * @ignore
- * User: daletan
- * Date: 12/19/15
- * Time: 10:23 PM
- * Copyright 1stdibs.com, Inc. 2015. All Rights Reserved.
- */
-
-'use strict';
-
 import {isNumberLike, formatDate} from './utils';
 import * as timeValues from './timeValues';
+
 export const PRIVATE_VALUE = 'private';
 export const NO_CACHE_NO_STORE = 'no-cache, no-store, must-revalidate';
 
-/**
- * Maps to keys in the different cache methods
- * @type {Object}
- */
-export const headerTypes = Object.freeze({
-    surrogateControl: 'maxAge',
-    staleRevalidate: 'staleRevalidate',
-    staleError: 'staleError'
-});
+// TODO: add parser that can understand string input for header values
+// ie: 'private, max-age=300
 
 /**
  * If a number or number-like, return the value as a number
@@ -31,28 +15,26 @@ export const headerTypes = Object.freeze({
  */
 function getTimeValue(value) {
     if (isNumberLike(value)) {
-        value = Number(value);
+        return Number(value);
     } else if (typeof value === 'string') {
         // checks for values listed in ./timeValues
         value = value.toUpperCase();
-        if (!timeValues[value]) {
-            console.warn(`An invalid time value was passed in, received '${value}'. Returning a value of 0`);
-            return 0;
+        if (timeValues[value]) {
+            return timeValues[value];
         }
-        return timeValues[value];
     }
     // if no valid value, always return a number
-    console.warn(`no valid time value found. ${value} was passed in. returning 0`);
-    return typeof value === 'number' ? value : 0;
+    console.warn(`no cached value found. ${value} was passed in. returning 0`);
+    return 0;
 }
 
 /**
  *
- * @param {boolean} usePrivate Used for user-specific pages
+ * @param {boolean} setPrivate Used for user-specific pages
  * @returns {*}
  */
-function generateBrowserCacheHeader(usePrivate = false) {
-    if (usePrivate) {
+function generateBrowserCacheHeader(setPrivate = false) {
+    if (setPrivate) {
         return `${PRIVATE_VALUE}, ${NO_CACHE_NO_STORE}`;
     }
     return NO_CACHE_NO_STORE;
@@ -89,7 +71,7 @@ function generateStaleError(maxAge) {
  * @alias generate
  * @param {object} [options] Caching options
  * @param {number|string} [options.staleRevalidate=false] Time when to refresh the content in the background
- * @param {number|string} [options.staleError=false] Time to allow for serving cache when there is an error from a back-end service
+ * @param {number|string} [options.staleIfError=false] Time to allow for serving cache when there is an error from a back-end service
  * @param {boolean} [options.setPrivate=false] use the `private` cache header value for user-specific pages
  * @returns {{Cache-Control: string}}
  */

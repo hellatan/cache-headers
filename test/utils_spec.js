@@ -1,17 +1,5 @@
-/**
- * @ignore
- * User: daletan
- * Date: 12/21/15
- * Time: 1:38 PM
- * Copyright 1stdibs.com, Inc. 2015. All Rights Reserved.
- */
-
-'use strict';
-
 import assert from 'assert';
 import {isNonEmptyObject, isNumberLike, formatDate} from '../src/utils';
-import {getSetGlobalLocale} from 'moment/src/lib/locale/locale';
-import fr from 'moment/src/locale/fr';
 
 const EXPECT_FALSE = false;
 const EXPECT_TRUE = true;
@@ -50,10 +38,6 @@ describe('utils', function () {
     describe('formatDate', function () {
         const date = new Date('2001-01-01');
         const formatted = 'Mon, 01 Jan 2001 00:00:00 GMT';
-        beforeEach(function () {
-            // not doing this makes `fr` the locale for every test
-            getSetGlobalLocale('en');
-        });
         it('should format the date based on the default format', function () {
             const now = formatDate({date});
             assert.equal(now, formatted);
@@ -61,14 +45,6 @@ describe('utils', function () {
         it('should format the date based on the passed in format', function () {
             const now = formatDate({date, dateFormat: 'ddd YYYY'});
             assert.equal(now, 'Mon 2001');
-        });
-        it('should format the date based on the passed in format and locale config', function () {
-            const locale = {
-                key: 'fr',
-                config: fr
-            };
-            const now = formatDate({date, dateFormat: 'ddd YYYY', locale});
-            assert.equal(now, 'lun. 2001');
         });
     });
 
