@@ -3,20 +3,30 @@
   "version": "0.0.5",
   "description": "Generate browser and cdn cache header values",
   "main": "dist/index.js",
+  "nyc": {
+    "check-coverage": true,
+    "extension": [
+      ".js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "lines": 100,
+    "sourceMap": false,
+    "instrument": false
+  },
   "scripts": {
-    "test": "mocha",
-    "compile": "./node_modules/.bin/babel src -d dist",
-    "gitlint": "node_modules/.bin/dibslint --git --warnings -e",
-    "docs": "./node_modules/.bin/mr-doc -s src/ -o docs -n 'Cache Headers'",
+    "test": "NODE_ENV=test mocha",
+    "compile": "rm -rf ./dist && NODE_ENV=build rollup -c",
+    "coverage": "NODE_ENV=test nyc --reporter=lcov --reporter=text yarn test",
+    "docs": "rm -rf ./docs && esdoc -c ./esdoc.json",
+    "lint": "dibslint --root=. -e --git --warnings",
+    "precommit": "dibslint --git --warnings -e",
+    "prepublish": "npm run coverage && npm run compile && npm run docs",
     "updatedocs": "rm -rf ./docs && npm run docs && git add ./docs && git commit -n -m 'updated docs v${npm show . version}'",
     "generatedist": "./generate.sh compile dist",
     "generatedocs": "./generate.sh docs docs",
     "preversion": "npm run gitlint && npm test && npm run generatedocs && npm run generatedist"
-  },
-  "pre-commit": {
-    "run": [
-      "gitlint"
-    ]
   },
   "keywords": [
     "cache control",
@@ -27,7 +37,10 @@
     "cdn",
     "response headers"
   ],
-  "author": "dale tan <dale@1stdibs.com> (https://1stdibs.com)",
+  "author": "1stdibs, Inc. (https://1stdibs.com)",
+  "contributors": [
+    "dale tan <dale@1stdibs.com> (https://1stdibs.com)"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/1stdibs/cache-headers"
@@ -37,18 +50,30 @@
     "async": "^1.5.0",
     "babel-cli": "^6.1.2",
     "babel-core": "^6.1.2",
+    "babel-plugin-istanbul": "^2.0.3",
     "babel-preset-es2015": "^6.1.2",
+    "core-js": "^1.2.6",
     "del": "^2.2.0",
     "dibslint": "^1.4.2",
     "express": "^4.13.3",
+    "fast-url-parser": "^1.1.3",
+    "glob-slasher": "^1.0.1",
+    "globject": "^1.0.1",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.1",
+    "husky": "^0.11.9",
+    "lodash.isempty": "^3.0.4",
     "mocha": "^2.3.3",
+    "moment": "^2.15.2",
     "mr-doc": "^3.0.7",
-    "pre-commit": "^1.1.2",
+    "nyc": "^8.4.0",
+    "regular": "^0.1.6",
+    "rollup": "^0.36.3",
+    "rollup-plugin-babel": "^2.6.1",
+    "rollup-plugin-commonjs": "^5.0.5",
     "supertest": "^1.1.0"
   },
-  "dependencies": {
+  "peerDependencies": {
     "core-js": "^1.2.6",
     "fast-url-parser": "^1.1.3",
     "glob-slasher": "^1.0.1",
