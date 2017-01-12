@@ -11,7 +11,7 @@
     "require": [
       "babel-register"
     ],
-    "branches": 85,
+    "branches": 83,
     "functions": 100,
     "lines": 100,
     "statements": 100,
@@ -25,11 +25,11 @@
     "docs": "rm -rf ./docs && esdoc -c ./esdoc.json",
     "lint": "dibslint --root=. -e --git --warnings",
     "precommit": "dibslint --git --warnings -e",
-    "prepublish": "npm run coverage && npm run compile && npm run docs",
-    "updatedocs": "rm -rf ./docs && npm run docs && git add ./docs && git commit -n -m 'updated docs v${npm show . version}'",
+    "prepublish": "yarn run coverage && yarn run compile",
+    "updatedocs": "rm -rf ./docs && yarn run docs && git add ./docs && git commit -n -m 'updated docs v${npm show . version}'",
     "generatedist": "./generate.sh compile dist",
     "generatedocs": "./generate.sh docs docs",
-    "preversion": "npm run gitlint && npm test && npm run generatedocs && npm run generatedist"
+    "preversion": "yarn run gitlint && yarn test && yarn run generatedocs && yarn run generatedist"
   },
   "keywords": [
     "cache control",
