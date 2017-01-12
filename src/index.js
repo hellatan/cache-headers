@@ -8,14 +8,17 @@
 
 'use strict';
 
-const url = require('fast-url-parser');
-const globject = require('globject');
-const slasher = require('glob-slasher');
-const isEmpty = require('lodash.isempty');
-const { headerTypes, generate } = require('./cacheControl');
-const additionalHeaders = require('./additionalHeaders');
-const utils = require('./utils');
-const timeValues = require('./timeValues');
+import url from 'fast-url-parser';
+import globject from 'globject';
+import slasher from 'glob-slasher';
+import isEmpty from 'lodash.isempty';
+import {
+    KEY_SURROGATE_CONTROL
+} from './headerTypes';
+import { generateAllCacheHeaders } from './cacheControl';
+import { isNumberLike, isNonEmptyObject } from './utils';
+
+export * from './timeValues';
 
 /**
  * This will either set a specific header or defer to using express' res.set() functionality
@@ -27,21 +30,23 @@ const timeValues = require('./timeValues');
  */
 function setHeader(res, headerData) {
     if (headerData.name && headerData.value) {
-        res.setHeader(headerData.name, headerData.value);
-    } else if (utils.isTrueObject(headerData)) {
+        res.set(headerData.name, headerData.value);
+    } else if (isNonEmptyObject(headerData)) {
         res.set(headerData);
     }
 }
 
-function setAdditionalHeaders(options = {}) {
+/**
+ * @param {object<array>} headers
+ * @param {string} headers[].name The header name
+ * @param {string} headers[].value The header value
+ * @returns {function(*, *=, *)}
+ */
+export function setAdditionalHeaders(headers = []) {
     return (req, res, next) => {
-        Object.keys(options).forEach(key => {
-            if (typeof additionalHeaders[key] === 'function') {
-                const option = options[key];
-                const headerData = additionalHeaders[key](option);
-                setHeader(res, headerData);
-            }
-        });
+        if (Array.isArray(headers) && headers.length) {
+            headers.map(headerData => setHeader(res, headerData));
+        }
         next();
     };
 }
@@ -54,7 +59,7 @@ function setAdditionalHeaders(options = {}) {
  * @param {object} [config.paths] Cache settings with glob path patterns
  * @return {Function}
  */
-function middleware(config) {
+export function middleware(config) {
 
     const { cacheSettings, paths } = config || {};
 
@@ -62,35 +67,28 @@ function middleware(config) {
 
         const pathname = url.parse(req.originalUrl).pathname;
         const cacheValues = globject(slasher(paths || {}, {value: false}));
-        let cacheValue = cacheValues(slasher(pathname));
+        let values = cacheValues(slasher(pathname));
 
-        if (utils.isTrueObject(cacheSettings)) {
+        if (isNonEmptyObject(cacheSettings)) {
             // override default cacheValue settings
-            cacheValue = generate(cacheSettings).value;
-        } else if (utils.isTrueObject(cacheValue)) {
-            cacheValue = generate(cacheValue).value;
-        } else if (cacheValue === false) {
-            cacheValue = generate({ maxAge: 0, sMaxAge: 0, setNoCache: true }).value;
-        } else if (utils.isNumberLike(cacheValue)) {
+            values = generateAllCacheHeaders(cacheSettings);
+        } else if (isNonEmptyObject(values)) {
+            values = generateAllCacheHeaders(values);
+        } else if (values === false) {
+            values = generateAllCacheHeaders({
+                [KEY_SURROGATE_CONTROL]: 0,
+                setPrivate: true
+            });
+        } else if (isNumberLike(values)) {
             // catch `0` before !cacheValue check
             // make sure to convert value to actual number
-            cacheValue = Number(cacheValue);
-            cacheValue = generate({ maxAge: cacheValue, sMaxAge: cacheValue }).value;
-        } else if (!cacheValue || isEmpty(cacheValue)) {
-            cacheValue = generate().value;
+            values = generateAllCacheHeaders({ [KEY_SURROGATE_CONTROL]: Number(values) });
+        } else if (!values || isEmpty(values)) {
+            values = generateAllCacheHeaders();
         }
-        setHeader(res, { name: 'Cache-Control', value: cacheValue });
+
+        setHeader(res, values);
 
         next();
     };
 }
-
-/**
- * @module index
- * @type {object}
- */
-module.exports = Object.assign({
-    headerTypes,
-    setAdditionalHeaders,
-    middleware
-}, timeValues);

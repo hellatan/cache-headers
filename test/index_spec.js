@@ -8,25 +8,45 @@
 
 'use strict';
 
-const cacheControl = require('../src');
-const timeValues = require('../src/timeValues');
-const utils = require('../src/utils');
-const assert = require('assert');
-const express = require('express');
-const supertest = require('supertest');
-const async = require('async');
+import * as api from '../src';
+import {NO_CACHE_NO_STORE} from '../src/cacheControl';
+import {
+    KEY_LAST_MODIFIED,
+    KEY_STALE_IF_ERROR,
+    KEY_STALE_WHILE_REVALIDATE,
+    KEY_SURROGATE_CONTROL
+} from '../src/headerTypes';
+import * as timeValues from '../src/timeValues';
+import assert from 'assert';
+import express from 'express';
+import supertest from 'supertest';
+import async from 'async';
+
+const HEADER_CACHE_CONTROL = 'Cache-Control';
+const HEADER_PRAGMA = 'Pragma';
+const HEADER_EXPIRES = 'Expires';
+const HEADER_SURROGATE_CONTROL = 'Surrogate-Control';
+
 const caches = {
     cacheSettings: {},
     paths: {
         '/**/subpath': "31536000",
-        '/root/sub': 'private, max-age=300',
+        '/root/sub': {
+            [KEY_LAST_MODIFIED]: -1,
+            [KEY_SURROGATE_CONTROL]: 300,
+            [KEY_STALE_WHILE_REVALIDATE]: 400,
+            [KEY_STALE_IF_ERROR]: 600
+        },
         '/root/**': false,
-        '/root': false,
-        '/obj': { maxAge: 10 }
+        '/root': 1024,
+        '/obj': {
+            [HEADER_CACHE_CONTROL]: 'no-cache',
+            [HEADER_SURROGATE_CONTROL]: 'maxAge=10'
+        }
     }
 };
 
-describe('cache control', function () {
+describe('cache control index', function () {
 
     let app;
     let agent;
@@ -36,33 +56,49 @@ describe('cache control', function () {
         agent = supertest(app);
     });
 
-    it('should have default cache time values', () => {
-        // make sure default cache values are attached to main module export
+    it('should have default cache time values', function () {
+        // make sure default cache values are attached to public api
         Object.keys(timeValues).forEach(val => {
-            const expect = timeValues[val];
-            assert.deepEqual(cacheControl[val], expect);
+            assert.deepEqual(api[val], timeValues[val]);
         });
     });
 
-    describe('application-level middleware', () => {
+    describe('application-level middleware', function () {
 
         beforeEach(() => {
-            app.use(cacheControl.middleware(caches));
+            app.use(api.middleware(caches));
         });
 
-        it('should set cache default cache settings', (done) => {
-            agent
-                .get('/test/subpath')
-                .expect('Cache-Control', 'max-age=31536000, s-maxage=31536000')
-                .end(done);
+        describe('initial paths', function () {
+            it('should get a nested path', (done) => {
+                agent.get('/root/sub/subpath')
+                    .expect(HEADER_CACHE_CONTROL, NO_CACHE_NO_STORE)
+                    .expect(HEADER_SURROGATE_CONTROL, 'max-age=31536000')
+                    .expect(HEADER_PRAGMA, 'no-cache')
+                    .expect(HEADER_EXPIRES, 0)
+                    .end(done);
+            });
+            it('should get an exact match', function (done) {
+                const cacheControlValue = `${NO_CACHE_NO_STORE}, stale-while-revalidate=400, stale-if-error=600`;
+                agent.get('/root/sub')
+                    .expect(HEADER_CACHE_CONTROL, cacheControlValue)
+                    .expect(HEADER_SURROGATE_CONTROL, 'max-age=300')
+                    .end(done);
+            });
+            it('should get any match', function (done) {
+                agent.get('/root/something/subbby')
+                    .expect(HEADER_CACHE_CONTROL, `private, ${NO_CACHE_NO_STORE}`)
+                    .expect(HEADER_SURROGATE_CONTROL, 'max-age=0')
+                    .end(done);
+            });
         });
 
-        it('should set override default cache settings', (done) => {
+        it('should override default cache settings', (done) => {
 
             const router = express.Router(); // eslint-disable-line new-cap
             app.use(router);
 
-            router.get('/root/sub', cacheControl.middleware({
+            router.get('/root/sub', api.middleware({
                 cacheSettings: {
                     maxAge: 300
                 }
@@ -70,37 +106,42 @@ describe('cache control', function () {
 
             agent
                 .get('/root/sub')
-                .expect('Cache-Control', 'max-age=300')
+                .expect(HEADER_CACHE_CONTROL, NO_CACHE_NO_STORE)
+                .expect(HEADER_SURROGATE_CONTROL, 'max-age=300')
+                .expect('Pragma', 'no-cache')
+                .expect('Expires', 0)
                 .end(done);
         });
 
         it('should set default values when nothing is passed in', (done) => {
             app = express();
             agent = supertest(app);
-            app.use(cacheControl.middleware());
+            app.use(api.middleware());
 
             agent
                 .get('/root/sub')
-                .expect('Cache-Control', 'max-age=600')
+                .expect(HEADER_CACHE_CONTROL, NO_CACHE_NO_STORE)
+                .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
+                .expect('Pragma', 'no-cache')
+                .expect('Expires', 0)
                 .end(done);
         });
 
     });
 
-    describe('router-level middleware', () => {
+    describe('router-level middleware', function () {
 
         let router;
 
         beforeEach(function () {
             router = express.Router(); // eslint-disable-line new-cap
-            router.use(cacheControl.middleware(caches));
+            router.use(api.middleware(caches));
             app.use(router);
         });
 
-        describe('path object', () => {
-
-            it('should set the default cache header if invalid object settings are passed in', (done) => {
-                router.get('/obj', cacheControl.middleware({
+        describe('path object', function () {
+            it('should set the default cache header if invalid object settings are passed in', function (done) {
+                router.get('/obj', api.middleware({
                     paths: {
                         '/obj': {
                             notValid: 10
@@ -109,83 +150,56 @@ describe('cache control', function () {
                 }));
                 agent
                     .get('/obj')
-                    .expect('Cache-Control', 'max-age=600')
+                    .expect(HEADER_CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                    .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
                     .end(done);
             });
-
-            it('should set the cache header if an object is passed into the path', (done) => {
-                agent
-                    .get('/obj')
-                    .expect('Cache-Control', 'max-age=10')
-                    .end(done);
-            });
-
         });
 
-        it('sets the `max-age` and `s-maxage` cache header if specified as only a number or number-like value in the config', function (done) {
-            agent
-                .get('/test/subpath')
-                .expect('Cache-Control', 'max-age=31536000, s-maxage=31536000')
-                .end(done);
-        });
-
-        it('sets cache control to no-cache if `false` is specified in config file', function (done) {
-            agent
-                .get('/root')
-                .expect('Cache-Control', 'no-cache, max-age=0')
-                .end(done);
-        });
-
-        it('sets cache control to the passed string if specified in original config file', function (done) {
-            agent
-                .get('/root/sub')
-                .expect('Cache-Control', 'private, max-age=300')
-                .end(done);
-        });
-
-        it('sets cache control to the passed string if specified in route-specific config file', function (done) {
-            router.get('/root/other', cacheControl.middleware({
+        it('sets surrogate control to the passed string if specified in route-specific config file', function (done) {
+            router.get('/root/other', api.middleware({
                 cacheSettings: {
-                    maxAge: 100
+                    [KEY_SURROGATE_CONTROL]: 100
                 }
             }));
             agent
                 .get('/root/other')
-                .expect('Cache-Control', 'max-age=100')
+                .expect(HEADER_SURROGATE_CONTROL, 'max-age=100')
                 .end(done);
         });
 
-        it('sets cache control to 600 seconds by default', function (done) {
+        it('sets surrogate control to 600 seconds by default', function (done) {
             agent
                 .get('/')
-                .expect('Cache-Control', 'max-age=600')
+                .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
                 .end(done);
         });
 
-        it('sets the cache control to 600 seconds by default if no config is provided', function (done) {
+        it('sets the surrogate control to 600 seconds by default if no config is provided', function (done) {
             agent
                 .get('/')
-                .expect('Cache-Control', 'max-age=600')
+                .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
                 .end(done);
         });
 
         it('should overwrite default cache settings', (done) => {
-            router.get('/test/subpath', cacheControl.middleware({
+            router.get('/test/subpath', api.middleware({
                 cacheSettings: {
-                    'maxAge': "3000"
+                    [KEY_SURROGATE_CONTROL]: "3000"
                 }
             }));
             agent
                 .get('/test/subpath')
-                .expect('Cache-Control', 'max-age=3000')
+                .expect(HEADER_SURROGATE_CONTROL, 'max-age=3000')
                 .end(done);
         });
 
         it('sets cache control using glob negation', function (done) {
-
             router = express.Router(); // eslint-disable-line new-cap
-            router.use(cacheControl.middleware({
-                paths:{
+            router.use(api.middleware({
+                paths: {
+                    // any route that does NOT start with /anything
+                    // should have minimal caches
                     '!/anything/**': false
                 }
             }));
@@ -197,13 +211,15 @@ describe('cache control', function () {
                 function (cb) {
                     agent
                         .get('/negation')
-                        .expect('Cache-Control', 'no-cache, max-age=0')
+                        .expect(HEADER_CACHE_CONTROL, "private, no-cache, no-store, must-revalidate")
+                        .expect(HEADER_SURROGATE_CONTROL, 'max-age=0')
                         .end(cb);
                 },
                 function (cb) {
                     agent
                         .get('/anything/test.html')
-                        .expect('Cache-Control', 'max-age=600')
+                        .expect(HEADER_CACHE_CONTROL, 'no-cache, no-store, must-revalidate')
+                        .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
                         .end(cb);
                 }
             ], done);
@@ -211,55 +227,25 @@ describe('cache control', function () {
 
     });
 
-    describe('setAdditionalHeaders (Expires, Last-Modified)', () => {
-        it("should set headers from today", (done) => {
-            const testDate = new Date();
-            const lastModFormatted = utils.formatDate(testDate, 'test');
-            const timeToAdd = cacheControl.ONE_DAY;
-            const newDate = utils.addTime({ timeToAdd });
-            const expiresDate = utils.formatDate(newDate.toISOString(), 'test');
-            const options = {
-                expires: {
-                    maxAge: timeToAdd,
-                    date: testDate,
-                    formatType: 'test'
+    describe('setAdditionalHeaders', function () {
+        it("should set headers passed in", (done) => {
+            const headers = [
+                {
+                    'custom-header': 'yes',
+                    'another-header': 100
                 },
-                lastModified: {
-                    date: testDate,
-                    formatType: 'test'
+                {
+                    name: 'set-by-name',
+                    value: 'set by value'
                 }
-            };
+            ];
 
-            app.use(cacheControl.setAdditionalHeaders(options));
+            app.use(api.setAdditionalHeaders(headers));
             agent
                 .get('/')
-                .expect('Expires', expiresDate)
-                .expect('Last-Modified', lastModFormatted)
-                .end(done);
-        });
-        it('should set headers from a date that is passed in', (done) => {
-            const testDate = new Date('2015-12-26');
-            const lastModFormatted = utils.formatDate(testDate, 'test');
-            const timeToAdd = cacheControl.ONE_WEEK;
-            const newDate = utils.addTime({ date: testDate, timeToAdd });
-            const expiresDate = utils.formatDate(newDate.toISOString(), 'test');
-            const options = {
-                expires: {
-                    maxAge: timeToAdd,
-                    date: testDate,
-                    formatType: 'test'
-                },
-                lastModified: {
-                    date: testDate,
-                    formatType: 'test'
-                }
-            };
-
-            app.use(cacheControl.setAdditionalHeaders(options));
-            agent
-                .get('/')
-                .expect('Expires', expiresDate)
-                .expect('Last-Modified', lastModFormatted)
+                .expect('custom-header', 'yes')
+                .expect('another-header', 100)
+                .expect('set-by-name', 'set by value')
                 .end(done);
         });
     });
