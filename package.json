@@ -23,13 +23,13 @@
     "compile": "rm -rf ./dist && NODE_ENV=build rollup -c",
     "coverage": "NODE_ENV=test nyc --reporter=lcov --reporter=text yarn test",
     "docs": "rm -rf ./docs && esdoc -c ./esdoc.json",
-    "lint": "dibslint --root=. -e --git --warnings",
+    "lint": "dibslint --root=./src -e --git --warnings",
     "precommit": "dibslint --git --warnings -e",
     "prepublish": "yarn run coverage && yarn run compile",
     "updatedocs": "rm -rf ./docs && yarn run docs && git add ./docs && git commit -n -m 'updated docs v${npm show . version}'",
     "generatedist": "./generate.sh compile dist",
     "generatedocs": "./generate.sh docs docs",
-    "preversion": "yarn run gitlint && yarn test && yarn run generatedocs && yarn run generatedist"
+    "preversion": "yarn run lint && yarn test && yarn run generatedist"
   },
   "keywords": [
     "cache control",
