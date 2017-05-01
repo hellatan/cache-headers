@@ -3,33 +3,39 @@
   "version": "1.0.0",
   "description": "Generate browser and cdn cache header values",
   "main": "dist/index.js",
-  "nyc": {
-    "check-coverage": true,
-    "extension": [
-      ".js"
-    ],
-    "require": [
-      "babel-register"
-    ],
-    "branches": 83,
-    "functions": 100,
-    "lines": 100,
-    "statements": 100,
-    "sourceMap": false,
-    "instrument": false
-  },
   "scripts": {
-    "test": "NODE_ENV=test mocha",
+    "test": "NODE_ENV=test jest",
     "compile": "rm -rf ./dist && NODE_ENV=build rollup -c",
-    "coverage": "NODE_ENV=test nyc --reporter=lcov --reporter=text yarn test",
     "docs": "rm -rf ./docs && esdoc -c ./esdoc.json",
     "lint": "dibslint --root=./src -e --git --warnings",
     "precommit": "dibslint --git --warnings -e",
-    "prepublish": "yarn run coverage && yarn run compile",
+    "prepublish": "yarn run compile",
     "updatedocs": "rm -rf ./docs && yarn run docs && git add ./docs && git commit -n -m 'updated docs v${npm show . version}'",
     "generatedist": "./generate.sh compile dist",
     "generatedocs": "./generate.sh docs docs",
     "preversion": "yarn run lint && yarn test && yarn run generatedist"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageDirectory": "<rootDir>/__coverage__",
+    "coverageThreshold": {
+      "global": {
+        "branches": 83,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    },
+    "setupFiles": [
+      "<rootDir>/__tests__/testHelper.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/__tests__/registerBabel.js"
+    ],
+    "transformIgnorePatterns": [
+      "!<rootDir>/node_modules/moment/src"
+    ]
   },
   "keywords": [
     "cache control",
@@ -65,11 +71,11 @@
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.1",
     "husky": "^0.11.9",
+    "jest": "^19.0.2",
     "lodash.isempty": "^3.0.4",
     "mocha": "^2.3.3",
     "moment": "^2.15.2",
     "mr-doc": "^3.0.7",
-    "nyc": "^8.4.0",
     "regular": "^0.1.6",
     "rollup": "^0.36.3",
     "rollup-plugin-babel": "^2.6.1",

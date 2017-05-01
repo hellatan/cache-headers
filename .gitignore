@@ -1,6 +1,5 @@
 .idea
 node_modules
 dist
-.nyc_output
-coverage
+__coverage__
 
