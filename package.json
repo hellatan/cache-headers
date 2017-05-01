@@ -31,10 +31,8 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "<rootDir>/__tests__/registerBabel.js"
-    ],
-    "transformIgnorePatterns": [
-      "!<rootDir>/node_modules/moment/src"
+      "<rootDir>/__tests__/registerBabel.js",
+      "<rootDir>/__tests__/testHelper.js"
     ]
   },
   "keywords": [
@@ -61,7 +59,7 @@
     "babel-core": "^6.1.2",
     "babel-plugin-istanbul": "^2.0.3",
     "babel-preset-es2015": "^6.1.2",
-    "core-js": "^1.2.6",
+    "core-js": "^2.4.1",
     "del": "^2.2.0",
     "dibslint": "^1.4.2",
     "express": "^4.13.3",
@@ -73,7 +71,6 @@
     "husky": "^0.11.9",
     "jest": "^19.0.2",
     "lodash.isempty": "^3.0.4",
-    "mocha": "^2.3.3",
     "moment": "^2.15.2",
     "mr-doc": "^3.0.7",
     "regular": "^0.1.6",
@@ -83,12 +80,14 @@
     "supertest": "^1.1.0"
   },
   "peerDependencies": {
-    "core-js": "^1.2.6",
+    "core-js": "^2.4.1",
+    "moment": "^2.15.2"
+  },
+  "dependencies": {
     "fast-url-parser": "^1.1.3",
     "glob-slasher": "^1.0.1",
     "globject": "^1.0.1",
     "lodash.isempty": "^3.0.4",
-    "moment": "^2.15.2",
     "regular": "^0.1.6"
   }
 }
