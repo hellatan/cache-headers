@@ -18,6 +18,7 @@ import {
 import { generateAllCacheHeaders } from './cacheControl';
 import { isNumberLike, isNonEmptyObject } from './utils';
 
+export * from './headerTypes';
 export * from './timeValues';
 
 /**
