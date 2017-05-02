@@ -8,9 +8,7 @@
 
 'use strict';
 
-import {now, createUTC as utc} from 'moment/src/lib/moment/moment';
-import {updateLocale} from 'moment/src/lib/locale/locale';
-import {formatMoment} from 'moment/src/lib/format/format';
+import moment, {now, utc, updateLocale} from 'moment';
 import regular from 'regular';
 import isEmpty from 'lodash.isempty';
 
@@ -59,7 +57,7 @@ export function formatDate(options = {}) {
     const locale = {key: undefined, config: undefined};
     // need to set locale before formatting
     updateLocale(locale.key, locale.config);
-    const formatted = formatMoment(getUtcTime(date), dateFormat);
-    // do browsers require using GMT instead of UTC?
+    const formatted = moment(getUtcTime(date)).format(dateFormat);
+    // browsers require using GMT instead of UTC for cache headers
     return formatted.replace('UTC', 'GMT');
 }
