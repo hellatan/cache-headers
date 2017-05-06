@@ -121,7 +121,7 @@ describe('cache control index', function () {
     it('should have default cache time values', function () {
         // make sure default cache values are attached to public api
         Object.keys(timeValues).forEach(val => {
-            assert.deepEqual(api[val], timeValues[val]);
+            assert(api[val] === timeValues[val]);
         });
     });
 
