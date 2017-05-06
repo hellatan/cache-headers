@@ -33,7 +33,7 @@ function getTimeValue(value) {
  * @param {boolean} setPrivate Used for user-specific pages
  * @returns {*}
  */
-function generateBrowserCacheHeader(setPrivate = false) {
+function generateBrowserCacheHeader(setPrivate) {
     if (setPrivate) {
         return `${PRIVATE_VALUE}, ${NO_CACHE_NO_STORE}`;
     }
@@ -75,7 +75,7 @@ function generateStaleError(maxAge) {
  * @param {boolean} [options.setPrivate=false] use the `private` cache header value for user-specific pages
  * @returns {{Cache-Control: string}}
  */
-function generateCacheControl(options = {}) {
+function generateCacheControl(options) {
     const {
         staleRevalidate = false,
         staleError = false,
@@ -103,7 +103,7 @@ function generateCacheControl(options = {}) {
  * @param {boolean} [options.setPrivate=false] Set the max-age value to 0 for user-specific pages
  * @returns {{Surrogate-Control: string}}
  */
-function generateSurrogateControl(options = {}) {
+function generateSurrogateControl(options) {
     const {
         // private should only be used for user-specific pages. ie account pages
         setPrivate = false
@@ -134,7 +134,7 @@ function generateExpiresHeader() {
     };
 }
 
-function generateLastModifiedHeader(options = {}) {
+function generateLastModifiedHeader(options) {
     let {lastModified = false} = options;
 
     if (!lastModified) {
