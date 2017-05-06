@@ -35,6 +35,15 @@ describe('cache control', function () {
         assert.deepEqual(actual, expect);
     }
 
+    it('should give all default values when no options are passed in', function () {
+        const actual = generateAllCacheHeaders();
+        const expect = {
+            [CACHE_CONTROL_STR]: NO_CACHE_NO_STORE,
+            [SURROGATE_CONTROL_STR]: 'max-age=600'
+        };
+        headerAssertions(actual, expect);
+    });
+
     it('should set correct default cache control headers', function () {
         const actual = generateAllCacheHeaders(lastModifiedHeader);
         const expect = {
