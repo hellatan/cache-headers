@@ -19,8 +19,7 @@ import {
 import * as timeValues from '../src/timeValues';
 import assert from 'assert';
 import express from 'express';
-import supertest from 'supertest';
-import async from 'async';
+import request from 'supertest';
 
 const HEADER_CACHE_CONTROL = 'Cache-Control';
 const HEADER_PRAGMA = 'Pragma';
@@ -127,75 +126,117 @@ describe('cache control index', function () {
 
     describe('application-level middleware', function () {
 
-        beforeEach(() => {
-            app.use(api.middleware(caches));
-        });
-
         describe('initial paths', function () {
+            let agent;
+            let app;
+            beforeEach(() => {
+                app = express();
+                app.use(api.middleware(caches));
+                createMockRoutes(app);
+                server = createServer(app);
+                agent = request(server);
+            });
             it('should get a nested path', (done) => {
                 agent.get('/root/sub/subpath')
-                    .expect(HEADER_CACHE_CONTROL, NO_CACHE_NO_STORE)
-                    .expect(HEADER_SURROGATE_CONTROL, 'max-age=31536000')
-                    .expect(HEADER_PRAGMA, 'no-cache')
-                    .expect(HEADER_EXPIRES, 0)
-                    .end(done);
+                    .end((err, res) => {
+                        // it seems like the `.expect(headerName, headerValue)` api does not assert properly
+                        // this is the only consistent way to get tests to assert properly
+                        const expectedHeaders = [
+                            {name: HEADER_CACHE_CONTROL, value: NO_CACHE_NO_STORE},
+                            {name: HEADER_SURROGATE_CONTROL, value: 'max-age=31536000'},
+                            {name: HEADER_PRAGMA, value: 'no-cache'},
+                            {name: HEADER_EXPIRES, value: '0'}
+                        ];
+                        testHeaders(res, expectedHeaders);
+                        done();
+                    });
             });
             it('should get an exact match', function (done) {
                 const cacheControlValue = `${NO_CACHE_NO_STORE}, stale-while-revalidate=400, stale-if-error=600`;
                 agent.get('/root/sub')
-                    .expect(HEADER_CACHE_CONTROL, cacheControlValue)
-                    .expect(HEADER_SURROGATE_CONTROL, 'max-age=300')
-                    .end(done);
+                    .end((err, res) => {
+                        const expectedHeaders = [
+                            {name: HEADER_CACHE_CONTROL, value: cacheControlValue},
+                            {name: HEADER_SURROGATE_CONTROL, value: 'max-age=300'}
+                        ];
+                        testHeaders(res, expectedHeaders);
+                        done();
+                    });
             });
             it('should get any match', function (done) {
                 agent.get('/root/something/subbby')
-                    .expect(HEADER_CACHE_CONTROL, `private, ${NO_CACHE_NO_STORE}`)
-                    .expect(HEADER_SURROGATE_CONTROL, 'max-age=0')
-                    .end(done);
+                    .end((err, res) => {
+                        const expectedHeaders = [
+                            {name: HEADER_CACHE_CONTROL, value: `private, ${NO_CACHE_NO_STORE}`},
+                            {name: HEADER_SURROGATE_CONTROL, value: 'max-age=0'}
+                        ];
+                        testHeaders(res, expectedHeaders);
+                        done();
+                    });
             });
         });
 
         it('should override default cache settings', (done) => {
-
-            const router = express.Router(); // eslint-disable-line new-cap
-            app.use(router);
-
-            router.get('/root/sub', api.middleware({
-                cacheSettings: {
-                    maxAge: 300
+            const override = [
+                {
+                    route: '/root/sub',
+                    middlewares: [
+                        api.middleware({
+                            cacheSettings: {
+                                maxAge: 9999999999
+                            }
+                        })
+                    ]
                 }
-            }));
+            ];
+            const app = express();
+            app.use(api.middleware(caches));
+            createMockRoutes(app, override);
 
-            agent
-                .get('/root/sub')
-                .expect(HEADER_CACHE_CONTROL, NO_CACHE_NO_STORE)
-                .expect(HEADER_SURROGATE_CONTROL, 'max-age=300')
-                .expect('Pragma', 'no-cache')
-                .expect('Expires', 0)
-                .end(done);
+            server = createServer(app);
+            request(server).get('/root/sub')
+                .end((err, res) => {
+                    const expectedHeaders = [
+                        {name: HEADER_CACHE_CONTROL, value: NO_CACHE_NO_STORE},
+                        {name: HEADER_SURROGATE_CONTROL, value: 'max-age=9999999999'},
+                        {name: 'Pragma', value: 'no-cache'},
+                        {name: 'Expires', value: '0'}
+                    ];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
         });
 
         it('should set default values when nothing is passed in', (done) => {
-            app = express();
-            agent = supertest(app);
+            const app = express();
             app.use(api.middleware());
-
-            agent
-                .get('/root/sub')
-                .expect(HEADER_CACHE_CONTROL, NO_CACHE_NO_STORE)
-                .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
-                .expect('Pragma', 'no-cache')
-                .expect('Expires', 0)
-                .end(done);
+            // setup only one route
+            app.get('/root/sub', (req, res) => {
+                res.status(200).send('ok');
+            });
+            server = createServer(app);
+            request(server).get('/root/sub')
+                .end((err, res) => {
+                    const expectedHeaders = [
+                        {name: HEADER_CACHE_CONTROL, value: NO_CACHE_NO_STORE},
+                        {name: HEADER_SURROGATE_CONTROL, value: 'max-age=600'},
+                        {name: 'Pragma', value: 'no-cache'},
+                        {name: 'Expires', value: '0'}
+                    ];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
         });
 
     });
 
     describe('router-level middleware', function () {
 
+        let app;
         let router;
 
         beforeEach(function () {
+            app = express();
             router = express.Router(); // eslint-disable-line new-cap
             router.use(api.middleware(caches));
             app.use(router);
@@ -210,11 +251,16 @@ describe('cache control index', function () {
                         }
                     }
                 }));
-                agent
-                    .get('/obj')
-                    .expect(HEADER_CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                    .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
-                    .end(done);
+                server = createServer(app);
+                request(server).get('/obj')
+                    .end((err, res) => {
+                        const expectedHeaders = [
+                            {name: HEADER_CACHE_CONTROL, value: "no-cache, no-store, must-revalidate"},
+                            {name: HEADER_SURROGATE_CONTROL, value: 'max-age=600'}
+                        ];
+                        testHeaders(res, expectedHeaders);
+                        done();
+                    });
             });
         });
 
@@ -224,24 +270,37 @@ describe('cache control index', function () {
                     [KEY_SURROGATE_CONTROL]: 100
                 }
             }));
-            agent
-                .get('/root/other')
-                .expect(HEADER_SURROGATE_CONTROL, 'max-age=100')
-                .end(done);
+            server = createServer(app);
+            request(server).get('/root/other')
+                .end((err, res) => {
+                    const expectedHeaders = [{name: HEADER_SURROGATE_CONTROL, value: 'max-age=100'}];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
         });
 
         it('sets surrogate control to 600 seconds by default', function (done) {
-            agent
-                .get('/')
-                .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
-                .end(done);
+            server = createServer(app);
+            request(server).get('/')
+                .end((err, res) => {
+                    const expectedHeaders = [{name: HEADER_SURROGATE_CONTROL, value: 'max-age=600'}];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
         });
 
         it('sets the surrogate control to 600 seconds by default if no config is provided', function (done) {
-            agent
-                .get('/')
-                .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
-                .end(done);
+            app = express();
+            router = express.Router(); // eslint-disable-line new-cap
+            router.use(api.middleware(caches));
+            app.use(router);
+            server = createServer(app);
+            request(server).get('/')
+                .end((err, res) => {
+                    const expectedHeaders = [{name: HEADER_SURROGATE_CONTROL, value: 'max-age=600'}];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
         });
 
         it('should overwrite default cache settings', (done) => {
@@ -250,10 +309,13 @@ describe('cache control index', function () {
                     [KEY_SURROGATE_CONTROL]: "3000"
                 }
             }));
-            agent
-                .get('/test/subpath')
-                .expect(HEADER_SURROGATE_CONTROL, 'max-age=3000')
-                .end(done);
+            server = createServer(app);
+            request(server).get('/test/subpath')
+                .end((err, res) => {
+                    const expectedHeaders = [{name: HEADER_SURROGATE_CONTROL, value: 'max-age=3000'}];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
         });
 
         it('sets cache control using glob negation', function (done) {
@@ -267,31 +329,34 @@ describe('cache control index', function () {
             }));
             app = express();
             app.use(router);
-            agent = supertest(app);
+            server = createServer(app);
+            const agent = request(server);
 
-            async.parallel([
-                function (cb) {
-                    agent
-                        .get('/negation')
-                        .expect(HEADER_CACHE_CONTROL, "private, no-cache, no-store, must-revalidate")
-                        .expect(HEADER_SURROGATE_CONTROL, 'max-age=0')
-                        .end(cb);
-                },
-                function (cb) {
-                    agent
-                        .get('/anything/test.html')
-                        .expect(HEADER_CACHE_CONTROL, 'no-cache, no-store, must-revalidate')
-                        .expect(HEADER_SURROGATE_CONTROL, 'max-age=600')
-                        .end(cb);
-                }
-            ], done);
+            agent.get('/negation')
+                .end((err, res) => {
+                    const expectedHeaders = [
+                        {name: HEADER_CACHE_CONTROL, value: "private, no-cache, no-store, must-revalidate"},
+                        {name: HEADER_SURROGATE_CONTROL, value: 'max-age=0'}
+                    ];
+                    testHeaders(res, expectedHeaders);
+                });
+            agent.get('/anything/test.html')
+                .end((err, res) => {
+                    const expectedHeaders = [
+                        {name: HEADER_CACHE_CONTROL, value: 'no-cache, no-store, must-revalidate'},
+                        {name: HEADER_SURROGATE_CONTROL, value: 'max-age=600'}
+                    ];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
         });
 
     });
 
     describe('setAdditionalHeaders', function () {
+        let app;
         it("should set headers passed in", (done) => {
-            const headers = [
+            const additionalHeaders = [
                 {
                     'custom-header': 'yes',
                     'another-header': 100
@@ -302,13 +367,31 @@ describe('cache control index', function () {
                 }
             ];
 
-            app.use(api.setAdditionalHeaders(headers));
-            agent
-                .get('/')
-                .expect('custom-header', 'yes')
-                .expect('another-header', 100)
-                .expect('set-by-name', 'set by value')
-                .end(done);
+            app = express();
+            app.use(api.setAdditionalHeaders(additionalHeaders));
+            createMockRoutes(app);
+            server = createServer(app);
+            request(server).get('/')
+                .end((err, res) => {
+                    const expectedHeaders = [
+                        {name: 'custom-header', value: 'yes'},
+                        {name: 'another-header', value: '100'},
+                        {name: 'set-by-name', value: 'set by value'}
+                    ];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
+        });
+        it('should use the default empty array when nothing is passed in', (done) => {
+            app = express();
+            app.use(api.setAdditionalHeaders());
+            server = createServer(app);
+            request(server).get('/')
+                .end((err, res) => {
+                    const expectedHeaders = [];
+                    testHeaders(res, expectedHeaders);
+                    done();
+                });
         });
     });
 });
