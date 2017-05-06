@@ -1,5 +1,5 @@
 import assert from 'assert';
-import {isNonEmptyObject, isNumberLike, formatDate} from '../src/utils';
+import {isValidObject, isNumberLike, formatDate} from '../src/utils';
 
 const EXPECT_FALSE = false;
 const EXPECT_TRUE = true;
@@ -7,15 +7,15 @@ const EXPECT_TRUE = true;
 describe('utils', function () {
     describe('true object', function () {
         it('should return `false` if an array is passed in', () => {
-            const actual = isNonEmptyObject([1, 2, 3]);
+            const actual = isValidObject([1, 2, 3]);
             assert.deepEqual(actual, EXPECT_FALSE);
         });
         it('should return `false` if an actual empty object is passed in', () => {
-            const actual = isNonEmptyObject({});
+            const actual = isValidObject({});
             assert.deepEqual(actual, EXPECT_FALSE);
         });
         it('should return `true` if an actual object is passed in', () => {
-            const actual = isNonEmptyObject({ a: 1, b: 2, c: 3 });
+            const actual = isValidObject({ a: 1, b: 2, c: 3 });
             assert.deepEqual(actual, EXPECT_TRUE);
         });
     });

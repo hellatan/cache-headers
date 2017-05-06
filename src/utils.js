@@ -15,7 +15,7 @@ import isEmpty from 'lodash.isempty';
  * @param {*} val The value to check if it is an actual object. Arrays are not considered objects in this case
  * @return {boolean}
  */
-export function isNonEmptyObject(val) {
+export function isValidObject(val) {
     return !Array.isArray(val) && typeof val === 'object' && !isEmpty(val);
 }
 

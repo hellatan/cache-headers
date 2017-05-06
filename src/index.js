@@ -11,12 +11,11 @@
 import url from 'fast-url-parser';
 import globject from 'globject';
 import slasher from 'glob-slasher';
-import isEmpty from 'lodash.isempty';
 import {
     KEY_SURROGATE_CONTROL
 } from './headerTypes';
 import { generateAllCacheHeaders } from './cacheControl';
-import { isNumberLike, isNonEmptyObject } from './utils';
+import { isNumberLike, isValidObject } from './utils';
 
 export * from './headerTypes';
 export * from './timeValues';
@@ -32,7 +31,7 @@ export * from './timeValues';
 function setHeader(res, headerData) {
     if (headerData.name && headerData.value) {
         res.set(headerData.name, headerData.value);
-    } else if (isNonEmptyObject(headerData)) {
+    } else {
         res.set(headerData);
     }
 }
@@ -69,24 +68,27 @@ export function middleware(config) {
         const pathname = url.parse(req.originalUrl).pathname;
         const cacheValues = globject(slasher(paths || {}, {value: false}));
         let values = cacheValues(slasher(pathname));
+        let options = {};
 
-        if (isNonEmptyObject(cacheSettings)) {
+        if (isValidObject(cacheSettings)) {
             // override default cacheValue settings
-            values = generateAllCacheHeaders(cacheSettings);
-        } else if (isNonEmptyObject(values)) {
-            values = generateAllCacheHeaders(values);
+            options = cacheSettings;
+        } else if (isValidObject(values)) {
+            options = values;
         } else if (values === false) {
-            values = generateAllCacheHeaders({
+            options = {
                 [KEY_SURROGATE_CONTROL]: 0,
                 setPrivate: true
-            });
+            };
         } else if (isNumberLike(values)) {
             // catch `0` before !cacheValue check
             // make sure to convert value to actual number
-            values = generateAllCacheHeaders({ [KEY_SURROGATE_CONTROL]: Number(values) });
-        } else if (isEmpty(values)) {
-            values = generateAllCacheHeaders();
+            options = {
+                [KEY_SURROGATE_CONTROL]: Number(values)
+            };
         }
+
+        values = generateAllCacheHeaders(options);
 
         setHeader(res, values);
 
