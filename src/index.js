@@ -84,7 +84,7 @@ export function middleware(config) {
             // catch `0` before !cacheValue check
             // make sure to convert value to actual number
             values = generateAllCacheHeaders({ [KEY_SURROGATE_CONTROL]: Number(values) });
-        } else if (!values || isEmpty(values)) {
+        } else if (isEmpty(values)) {
             values = generateAllCacheHeaders();
         }
 
