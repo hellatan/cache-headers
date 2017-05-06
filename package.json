@@ -20,7 +20,7 @@
     "coverageDirectory": "<rootDir>/__coverage__",
     "coverageThreshold": {
       "global": {
-        "branches": 83,
+        "branches": 100,
         "functions": 100,
         "lines": 100,
         "statements": 100
