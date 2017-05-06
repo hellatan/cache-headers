@@ -46,6 +46,66 @@ const caches = {
     }
 };
 
+function createServer(app) {
+    // create a fresh instance between tests cases
+    return app.listen(0);
+}
+
+/**
+ *
+ * @param {array<object>} overrides
+ * @param {string} overrides[].route The string to check against
+ * @param {array} overrides[].middlewares Array of middlewares to pass into the route
+ * @param {string} route The route to check against
+ * @returns {Array}
+ */
+function getOverrideRouteMiddleware(overrides = [], route) {
+    const routeOverride = overrides.filter(override => (override.route === route));
+    if (routeOverride.length) {
+        return routeOverride[0].middlewares;
+    }
+    return [];
+}
+
+/**
+ *
+ * @param {object} app Your app instance
+ * @param {array<object>} [overrides] Array of objects to override any routes, used for adding custom middlewares
+ * @param {string} overrides[].route The string to check against
+ * @param {array} overrides[].middlewares Array of middlewares to pass into the route
+ *      [
+ *          {
+ *              route: '/root/sub',
+ *              middlewares; [...]
+ *          }
+ *      ]
+ * @returns {*}
+ */
+function createMockRoutes(app, overrides) {
+    const routes = [
+        '/root/sub/subpath',
+        '/root/sub',
+        '/root/*',
+        '/root',
+        '/obj',
+        '/'
+    ];
+
+    routes.forEach(route => {
+        const middlewares = [].concat(getOverrideRouteMiddleware(overrides, route));
+        app.get(route, middlewares, (req, res) => {
+            res.status(200).send('ok');
+        });
+    });
+}
+
+function testHeaders(res, testCases) {
+    testCases.forEach(obj => {
+        // all headers are lowercased in the response object
+        expect(res.header[obj.name.toLowerCase()]).toBe(obj.value);
+    });
+}
+
 describe('cache control index', function () {
 
     let app;
