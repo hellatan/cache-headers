@@ -1,3 +1,3 @@
 require('babel-core/register')({
-    ignore: /node_modules\/(?!moment)/
+    ignore: /node_modules/
 });

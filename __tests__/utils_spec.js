@@ -42,9 +42,17 @@ describe('utils', function () {
             const now = formatDate({date});
             assert.equal(now, formatted);
         });
-        it('should format the date based on the passed in format', function () {
-            const now = formatDate({date, dateFormat: 'ddd YYYY'});
-            assert.equal(now, 'Mon 2001');
+        describe('invalid date values', function () {
+            it('should create a new date string if date is invalid', function () {
+                const now = formatDate({date: new Date('invalid')});
+                const actualNow = formatDate({date: new Date()});
+                assert.equal(now, actualNow);
+            });
+            it('should create a new date string if date is null', function () {
+                const now = formatDate({date: null});
+                const actualNow = formatDate({date: new Date()});
+                assert.equal(now, actualNow);
+            });
         });
     });
 

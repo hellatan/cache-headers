@@ -71,7 +71,6 @@
     "husky": "^0.11.9",
     "jest": "^19.0.2",
     "lodash.isempty": "^3.0.4",
-    "moment": "^2.15.2",
     "mr-doc": "^3.0.7",
     "regular": "^0.1.6",
     "rollup": "^0.36.3",
@@ -80,8 +79,7 @@
     "supertest": "^1.1.0"
   },
   "peerDependencies": {
-    "core-js": "^2.4.1",
-    "moment": "^2.15.2"
+    "core-js": "^2.4.1"
   },
   "dependencies": {
     "fast-url-parser": "^1.1.3",
