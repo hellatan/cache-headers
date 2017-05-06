@@ -108,12 +108,14 @@ function testHeaders(res, testCases) {
 
 describe('cache control index', function () {
 
-    let app;
-    let agent;
+    let server;
 
-    beforeEach(function () {
-        app = express();
-        agent = supertest(app);
+    afterEach(done => {
+        if (server && server.close) {
+            server.close(done);
+        } else {
+            done();
+        }
     });
 
     it('should have default cache time values', function () {
