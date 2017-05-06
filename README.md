@@ -29,13 +29,11 @@ const cacheOptions = {
     paths: {
         '/**/generic': {
             maxAge: 'TEN_MINUTES',
-            sMaxAge: 'ONE_DAY',
             staleRevalidate: 'ONE_HOUR',
             staleError: 'ONE_HOUR'
         },
         '/short-cached/route': {
-            maxAge: 60,
-            sMaxAge: 600
+            maxAge: 60
         },
         '/user/route': false,
         '/**': {
@@ -52,8 +50,8 @@ app.use(cache.middleware(cacheOptions));
 ```
 
 With the example above, the `Cache-Control` header is set as follows when a user hits these different site routes:
-- `/**/generic` (any route ending in `generic`): `Cache-Control: max-age=600, s-maxage=84600, stale-while-revalidate=3600, stale-if-error=3600`
-- `/cached/route`: `Cache-Control: max-age=60, s-maxage=600`
+- `/**/generic` (any route ending in `generic`): `Cache-Control: max-age=600, stale-while-revalidate=3600, stale-if-error=3600`
+- `/cached/route`: `Cache-Control: max-age=60`
 - `/user/route`: `Cache-Control: no-cache, max-age=0`
 - `/**` (any other route not listed): `Cache-Control: max-age=600`
 
@@ -98,7 +96,6 @@ Rather than set the original headers defined in the `paths` config in the app-le
 {
     cacheSettings: {
         maxAge: number|string,
-        sMaxAge: number|string,
         staleRevalidate: number|string,
         staleError: number|string
     },
@@ -121,7 +118,7 @@ The following are acceptable values to use if a string is passed in for cache va
 If no options are passed in, the default value set is `Cache-Control: max-age=600`
 
 ## Contributing
-All code additions and bugfixes must be accompanied by unit tests. Tests are run with mocha and
+All code additions and bugfixes must be accompanied by unit tests. Tests are run with jest and
 written with the node [`assert`][assert] module.
 
 ## Acknowledgement
