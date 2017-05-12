@@ -8,11 +8,16 @@ This package is developed using [ES6][es6-moz] and transpiled with [babel]. It i
 ## Installation
 
 ```sh
+$ yarn add cache-headers
+// with npm 
 $ npm install --save cache-headers
 ```
 
 ## Tests
 ```sh
+$ yarn
+$ yarn test
+// with npm
 $ npm install
 $ npm test
 ```
@@ -54,14 +59,6 @@ With the example above, the `Cache-Control` header is set as follows when a user
 - `/cached/route`: `Cache-Control: max-age=60`
 - `/user/route`: `Cache-Control: no-cache, max-age=0`
 - `/**` (any other route not listed): `Cache-Control: max-age=600`
-
-Alternatively for `no-cache`, the following could be used:
-
-```js
-'/user/route': {
-    setNoCache: true
-}
-```
 
 ### Router-level middleware
 
