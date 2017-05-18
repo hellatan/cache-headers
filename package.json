@@ -1,6 +1,6 @@
 {
   "name": "cache-headers",
-  "version": "1.0.0",
+  "version": "1.0.0-hella.7",
   "description": "Generate browser and cdn cache header values",
   "main": "dist/index.js",
   "scripts": {
