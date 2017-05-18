@@ -8,7 +8,7 @@
 
 'use strict';
 
-import url from 'fast-url-parser';
+import url from 'url';
 import globject from 'globject';
 import slasher from 'glob-slasher';
 import {
