@@ -29,6 +29,9 @@ const HEADER_SURROGATE_CONTROL = 'Surrogate-Control';
 const caches = {
     cacheSettings: {},
     paths: {
+        '/**/any': {
+            [KEY_SURROGATE_CONTROL]: 3000
+        },
         '/**/subpath': "31536000",
         '/root/sub': {
             [KEY_LAST_MODIFIED]: -1,
@@ -82,6 +85,7 @@ function getOverrideRouteMiddleware(overrides = [], route) {
  */
 function createMockRoutes(app, overrides) {
     const routes = [
+        '/**/any',
         '/root/sub/subpath',
         '/root/sub',
         '/root/*',

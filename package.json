@@ -4,7 +4,7 @@
   "description": "Generate browser and cdn cache header values",
   "main": "dist/index.js",
   "scripts": {
-    "test": "NODE_ENV=test jest --forceExit",
+    "test": "NODE_ENV=test jest --forceExit --no-cache",
     "compile": "rm -rf ./dist && NODE_ENV=build rollup -c",
     "docs": "rm -rf ./docs && esdoc -c ./esdoc.json",
     "lint": "dibslint --root=./src --es6 --git --warnings",
