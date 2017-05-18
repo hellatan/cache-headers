@@ -85,7 +85,7 @@ function getOverrideRouteMiddleware(overrides = [], route) {
  */
 function createMockRoutes(app, overrides) {
     const routes = [
-        '/**/any',
+        '/**',
         '/root/sub/subpath',
         '/root/sub',
         '/root/*',
@@ -172,6 +172,58 @@ describe('cache control index', function () {
                     .end((err, res) => {
                         const expectedHeaders = [
                             {name: HEADER_CACHE_CONTROL, value: `private, ${NO_CACHE_NO_STORE}`},
+                            {name: HEADER_SURROGATE_CONTROL, value: 'max-age=0'}
+                        ];
+                        testHeaders(res, expectedHeaders);
+                        done();
+                    });
+            });
+        });
+
+        describe('overriding default values', () => {
+            let agent;
+            let app;
+            it('should allow a route to be added and override default values', done => {
+                // tests the following setup:
+                // new app()
+                // app.use(...middlewares)
+                // app.use(cacheHeaders.middleware(caches))
+                // ... create different routes/controllers
+                // app.use(controllers)
+                app = express();
+                app.use(api.middleware(caches));
+                createMockRoutes(app);
+                const overrides = {
+                    cacheSettings: {
+                        [KEY_SURROGATE_CONTROL]: 0
+                    },
+                    paths: {
+                        '/this/is/any': {
+                            [KEY_SURROGATE_CONTROL]: 0
+                        }
+                    }
+                };
+                app.get('/this/is/any', api.middleware(overrides), (req, res) => {
+                    console.log("/this/is/any route");
+                    res.status(200).send('ok');
+                });
+                server = createServer(app);
+                agent = request(server);
+
+                agent.get('/original/any')
+                    .end((err, res) => {
+                        const expectedHeaders = [
+                            {name: HEADER_SURROGATE_CONTROL, value: 'max-age=3000'}
+                        ];
+                        testHeaders(res, expectedHeaders);
+                    });
+                agent.get('/this/is/any')
+                    .end((err, res) => {
+                        console.log('gettnin /this/is/any');
+                        console.log(res.header);
+                        console.log(res);
+                        const expectedHeaders = [
+                            {name: HEADER_CACHE_CONTROL, value: NO_CACHE_NO_STORE},
                             {name: HEADER_SURROGATE_CONTROL, value: 'max-age=0'}
                         ];
                         testHeaders(res, expectedHeaders);
